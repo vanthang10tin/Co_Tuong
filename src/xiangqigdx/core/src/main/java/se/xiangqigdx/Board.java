@@ -49,20 +49,20 @@ class Piece {
     }
 
     public ArrayList<Position> getPseudoValidMovesPositions(Board board) {
-        ArrayList<Position> movespositions = new ArrayList<>();
+        ArrayList<Position> movesPositions = new ArrayList<>();
         int x = pos.x, y = pos.y;
         switch (type) {
             case CHARIOT: {
                 int[] dx = {1, -1, 0, 0}, dy = {0, 0, 1, -1};
-                int new_x = x, new_y = y;
                 for (int i = 0; i < 4; i++) {
+                    int new_x = x, new_y = y;
                     for (int j = 1; j <= 10; j++) {
                         new_x += dx[i];
                         new_y += dy[i];
                         if (!(0 <= new_x && new_x <= 8 && 0 <= new_y && new_y <= 9)) break;
-                        Piece p = board.getPieceAt(new Position(x, y));
-                        if (p == null) movespositions.add(new Position(new_x, new_y));
-                        else if (p.side != this.side) movespositions.add(new Position(new_x, new_y));
+                        Piece p = board.getPieceAt(new Position(new_x, new_y));
+                        if (p == null) movesPositions.add(new Position(new_x, new_y));
+                        else if (p != null && p.side != this.side) movesPositions.add(new Position(new_x, new_y));
                         else break;
                     }
                 }
@@ -78,8 +78,8 @@ class Piece {
                         if (p != null) continue;
 
                         p = board.getPieceAt(new Position(new_x, new_y));
-                        if (p == null) movespositions.add(new Position(new_x, new_y));
-                        else if (p.side != this.side) movespositions.add(new Position(new_x, new_y));
+                        if (p == null) movesPositions.add(new Position(new_x, new_y));
+                        else if (p.side != this.side) movesPositions.add(new Position(new_x, new_y));
                     }
 
                 }
@@ -95,8 +95,8 @@ class Piece {
                         if (p != null) continue;
 
                         p = board.getPieceAt(new_x, new_y);
-                        if (p == null) movespositions.add(new Position(new_x, new_y));
-                        else if (p.side != this.side) movespositions.add(new Position(new_x, new_y));
+                        if (p == null) movesPositions.add(new Position(new_x, new_y));
+                        else if (p.side != this.side) movesPositions.add(new Position(new_x, new_y));
 
                     }
 
@@ -109,8 +109,8 @@ class Piece {
                     int new_x = x + dx[i], new_y = y + dy[i];
                     if (3 <= new_x && new_x <= 5 && ((side == Side.RED && 7 <= new_y && new_y <= 9) || (side == Side.BLACK && 0 <= new_y && new_y <= 2))) {
                         Piece p = board.getPieceAt(new_x, new_y);
-                        if (p == null) movespositions.add(new Position(new_x, new_y));
-                        else if (p.side == this.side) movespositions.add(new Position(new_x, new_y));
+                        if (p == null) movesPositions.add(new Position(new_x, new_y));
+                        else if (p.side == this.side) movesPositions.add(new Position(new_x, new_y));
                     }
                 }
                 break;
@@ -121,8 +121,8 @@ class Piece {
                     int new_x = x + dx[i], new_y = y + dy[i];
                     if (3 <= new_x && new_x <= 5 && ((side == Side.RED && 7 <= new_y && new_y <= 9) || (side == Side.BLACK && 0 <= new_y && new_y <= 2))) {
                         Piece p = board.getPieceAt(new_x, new_y);
-                        if (p == null) movespositions.add(new Position(new_x, new_y));
-                        else if (p.side == this.side) movespositions.add(new Position(new_x, new_y));
+                        if (p == null) movesPositions.add(new Position(new_x, new_y));
+                        else if (p.side != this.side) movesPositions.add(new Position(new_x, new_y));
                     }
                 }
 
@@ -133,7 +133,7 @@ class Piece {
                     tmp_y += dir;
                     if (board.getPieceAt(x, tmp_y) != null) {
                         if (board.getPieceAt(x, tmp_y).type == Type.GENERAL)
-                            movespositions.add(new Position(x, tmp_y));
+                            movesPositions.add(new Position(x, tmp_y));
                         else break;
                     }
                 }
@@ -148,10 +148,10 @@ class Piece {
                         if (!(0 <= new_x && new_x <= 8 && 0 <= new_y && new_y <= 9)) break;
                         Piece p = board.getPieceAt(new_x, new_y);
                         if (p == null) {
-                            if (!jump) movespositions.add(new Position(new_x, new_y));
+                            if (!jump) movesPositions.add(new Position(new_x, new_y));
                         } else if (!jump) jump = true;
                         else if (p.side != this.side) {
-                            movespositions.add(new Position(new_x, new_y));
+                            movesPositions.add(new Position(new_x, new_y));
                             break;
                         } else break;
                     }
@@ -165,14 +165,14 @@ class Piece {
                     int new_x = x + dx[i], new_y = y + dy[i];
                     if (!(0 <= new_x && new_x <= 8 && 0 <= new_y && new_y <= 9)) break;
                     Piece p = board.getPieceAt(new_x, new_y);
-                    if (p == null) movespositions.add(new Position(new_x, new_y));
-                    else if (p.side != this.side) movespositions.add(new Position(new_x, new_y));
+                    if (p == null) movesPositions.add(new Position(new_x, new_y));
+                    else if (p.side != this.side) movesPositions.add(new Position(new_x, new_y));
                     if (0 <= new_x && new_x <= 8 && ((side == Side.BLACK && 0 <= new_y && new_y <= 4) || (side == Side.RED && 5 <= new_y && new_y <= 9)))
                         break;
                 }
             }
         }
-        return movespositions;
+        return movesPositions;
     }
 }
 
@@ -376,10 +376,14 @@ public class Board {
 
     public ArrayList<Position> getValidMovesPositions(Piece piece) {
         ArrayList<Position> validMovesPositions = piece.getPseudoValidMovesPositions(this);
+
+        ArrayList<Position> positionsToRemove = new ArrayList<>();
         for (var move : validMovesPositions) {
-            if (!isCheckAfterMove(piece, move))
-                validMovesPositions.remove(move);
+            if (isCheckAfterMove(piece, move))
+                positionsToRemove.add(move);
         }
+
+        validMovesPositions.removeAll(positionsToRemove);
         return validMovesPositions;
     }
 
@@ -402,7 +406,7 @@ public class Board {
         if (general == null) return false;
 
         for (var piece : pieces) {
-            if (piece.side == side) {
+            if (piece.side != side) {
                 if (piece.getPseudoValidMovesPositions(this).contains(general.pos))
                     return true;
             }
