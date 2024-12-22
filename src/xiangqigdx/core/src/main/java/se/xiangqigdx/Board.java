@@ -295,7 +295,7 @@ public class Board {
     public void setPieces() {
         pieces = new ArrayList<Piece>();
         pieces.add(new Piece(Side.BLACK, Type.CHARIOT, 0, 0));
-        pieces.add(new Piece(Side.BLACK, Type.HORSE, 8, 0));
+        pieces.add(new Piece(Side.BLACK, Type.CHARIOT, 8, 0));
         pieces.add(new Piece(Side.BLACK, Type.HORSE, 1, 0));
         pieces.add(new Piece(Side.BLACK, Type.HORSE, 7, 0));
         pieces.add(new Piece(Side.BLACK, Type.ELEPHANT, 2, 0));
@@ -307,7 +307,7 @@ public class Board {
         pieces.add(new Piece(Side.BLACK, Type.GENERAL, 4, 0));
 
         pieces.add(new Piece(Side.RED, Type.CHARIOT, 0, 9));
-        pieces.add(new Piece(Side.RED, Type.HORSE, 8, 9));
+        pieces.add(new Piece(Side.RED, Type.CHARIOT, 8, 9));
         pieces.add(new Piece(Side.RED, Type.HORSE, 1, 9));
         pieces.add(new Piece(Side.RED, Type.HORSE, 7, 9));
         pieces.add(new Piece(Side.RED, Type.ELEPHANT, 2, 9));
