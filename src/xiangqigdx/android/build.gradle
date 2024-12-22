@@ -63,7 +63,16 @@ dependencies {
   implementation "androidx.core:core:1.13.1"
   implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
   implementation project(':core')
+  def sqlite_version = "2.4.0"
 
+  // Java language implementation
+  implementation "androidx.sqlite:sqlite:$sqlite_version"
+
+  // Kotlin
+  implementation "androidx.sqlite:sqlite-ktx:$sqlite_version"
+
+  // Implementation of the AndroidX SQLite interfaces via the Android framework APIs.
+  implementation "androidx.sqlite:sqlite-framework:$sqlite_version"
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
