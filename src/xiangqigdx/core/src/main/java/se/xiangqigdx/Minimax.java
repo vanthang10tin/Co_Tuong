@@ -117,57 +117,88 @@ public class Minimax {
     public static MinimaxResult minimax(Board board, int depth, int alpha, int beta, Side maximizingSide, boolean isMaximizingSide) {
         if (depth == DEPTH_LIMIT || board.isGameOver()) {
             int score = evaluateBoard(board, maximizingSide);
-            System.out.println("Evaluated board with score " + score);
             return new MinimaxResult(null, score);
         }
 
-        System.out.println("Minimax: Depth " + depth + ", Alpha " + alpha + ", Beta " + beta + ", maximizingSide" + isMaximizingSide);
+        // Create a copy of pieces to avoid concurrent modification
+        ArrayList<Piece> piecesToConsider = new ArrayList<>(board.pieces);
+
         if (isMaximizingSide) {
             int maxScore = Integer.MIN_VALUE;
             Move bestMove = null;
-            for (var piece : board.pieces) {
+            outerMax:
+            for (Piece piece : piecesToConsider) {
                 if (piece.side == maximizingSide) {
-                    ArrayList<Position> moves = board.getValidMovesPositions(piece);
-                    for (var move : moves) {
-                        board.movePiece(piece, move);
+                    ArrayList<Position> moves = new ArrayList<>(board.getValidMovesPositions(piece));
+                    for (Position move : moves) {
+                        // Create a copy of the board state
+                        Position originalPos = new Position(piece.pos.x, piece.pos.y);
+                        Piece capturedPiece = board.getPieceAt(move);
+                        
+                        // Make move
+                        if (capturedPiece != null) {
+                            board.pieces.remove(capturedPiece);
+                        }
+                        piece.pos = move;
+                        
                         int score = minimax(board, depth + 1, alpha, beta, maximizingSide, false).score;
-                        board.undoMove();
+                        
+                        // Restore board state
+                        piece.pos = originalPos;
+                        if (capturedPiece != null) {
+                            board.pieces.add(capturedPiece);
+                        }
+                        
                         if (score > maxScore) {
                             maxScore = score;
                             bestMove = new Move(piece, move);
                         }
-
                         alpha = Math.max(alpha, score);
-                        if (beta <= alpha) break;
-
+                        if (beta <= alpha) break outerMax;
                     }
                 }
             }
 
             if (depth == 0) {
-                System.out.println("Tra lai bestMove.");
+                if (bestMove == null) {
+                    return new MinimaxResult(null, Integer.MIN_VALUE);
+                }
                 return new MinimaxResult(bestMove, maxScore);
-            } else return new MinimaxResult(null, maxScore);
+            }
+            return new MinimaxResult(null, maxScore);
         } else {
             int minScore = Integer.MAX_VALUE;
-            for (var piece : board.pieces) {
+            outerMin:
+            for (Piece piece : piecesToConsider) {
                 if (piece.side != maximizingSide) {
-                    ArrayList<Position> moves = board.getValidMovesPositions(piece);
-                    for (var move : moves) {
-                        board.movePiece(piece, move);
-                        int score = minimax(board, depth + 1, alpha, beta, maximizingSide, true).score;
-                        board.undoMove();
-                        if (score < minScore) {
-                            minScore = score;
+                    ArrayList<Position> moves = new ArrayList<>(board.getValidMovesPositions(piece));
+                    for (Position move : moves) {
+                        // Create a copy of the board state
+                        Position originalPos = new Position(piece.pos.x, piece.pos.y);
+                        Piece capturedPiece = board.getPieceAt(move);
+                        
+                        // Make move
+                        if (capturedPiece != null) {
+                            board.pieces.remove(capturedPiece);
                         }
+                        piece.pos = move;
+                        
+                        int score = minimax(board, depth + 1, alpha, beta, maximizingSide, true).score;
+                        
+                        // Restore board state
+                        piece.pos = originalPos;
+                        if (capturedPiece != null) {
+                            board.pieces.add(capturedPiece);
+                        }
+                        
+                        minScore = Math.min(minScore, score);
                         beta = Math.min(beta, score);
-                        if (beta <= alpha) break;
+                        if (beta <= alpha) break outerMin;
                     }
                 }
             }
             return new MinimaxResult(null, minScore);
         }
-
     }
 
 }

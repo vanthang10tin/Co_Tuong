@@ -6,6 +6,11 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Stack;
 
+enum GameMode {
+    PVP,
+    PVE
+}
+
 class Position {
     public int x, y;
 
@@ -273,6 +278,8 @@ public class Board {
     Side winner;
     boolean isStalemate;
     Stack<Move> moveStack;
+    private GameMode gameMode;
+    private boolean isProcessingAIMove = false;
 
     public Side getCurrentPlayer() {
         return currentPlayer;
@@ -348,8 +355,8 @@ public class Board {
         }
     }
 
-    public Board() {
-
+    public Board(GameMode mode) {
+        gameMode = mode;
         setPieces();
         selectedPiece = null;
         currentPlayer = Side.RED;
@@ -365,7 +372,11 @@ public class Board {
         isStalemate = false;
         lastMove = null;
         moveStack = new Stack<Move>();
+    }
 
+    // Add default constructor that defaults to PVP mode
+    public Board() {
+        this(GameMode.PVP);
     }
 
     public Piece getPieceAt(Position pos) {
@@ -397,13 +408,39 @@ public class Board {
         
         // Then check game status
         checkGameStatus();
+
+        // If it's PVE mode and it's AI's turn, make AI move
+        // Add a flag to prevent recursive AI moves
+        if (gameMode == GameMode.PVE && currentPlayer == player2Side && !gameOver && !isProcessingAIMove) {
+            makeAIMove();
+        }
+    }
+
+    private void makeAIMove() {
+        isProcessingAIMove = true;
+        try {
+            MinimaxResult result = Minimax.minimax(this, 0, Integer.MIN_VALUE, Integer.MAX_VALUE, currentPlayer, true);
+            if (result.move != null) {
+                movePiece(result.move.pieceToMove, result.move.to);
+            }
+        } finally {
+            isProcessingAIMove = false;
+        }
     }
 
     public void undoMove() {
-        Move moveToRestore = moveStack.pop();
-        if (moveToRestore != null) {
-            if (moveToRestore.capturedPiece != null) pieces.add(moveToRestore.capturedPiece);
-            getPieceAt(moveToRestore.to).pos = moveToRestore.from;
+        if (!moveStack.isEmpty()) {
+            Move moveToRestore = moveStack.pop();
+            if (moveToRestore != null) {
+                if (moveToRestore.capturedPiece != null) {
+                    pieces.add(moveToRestore.capturedPiece);
+                }
+                Piece movedPiece = getPieceAt(moveToRestore.to);
+                if (movedPiece != null) {
+                    movedPiece.pos = moveToRestore.from;
+                }
+                switchPlayer(); // Switch back to previous player
+            }
         }
     }
 
@@ -448,11 +485,10 @@ public class Board {
     }
 
     public boolean isCheckAfterMove(Piece piece, Position move) {
-        // Create temporary copies to avoid modifying original state
+        // Store original state
         Position originalPos = new Position(piece.pos.x, piece.pos.y);
         Piece capturedPiece = getPieceAt(move);
-        ArrayList<Piece> originalPieces = new ArrayList<>(pieces);
-    
+        
         // Simulate move
         if (capturedPiece != null) {
             pieces.remove(capturedPiece);
@@ -464,7 +500,9 @@ public class Board {
     
         // Restore original state
         piece.pos = originalPos;
-        pieces = originalPieces;  // Restore original pieces list
+        if (capturedPiece != null) {
+            pieces.add(capturedPiece);
+        }
     
         return inCheck;
     }

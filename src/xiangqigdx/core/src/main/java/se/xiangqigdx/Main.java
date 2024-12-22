@@ -11,7 +11,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.Color;
 
 import java.util.ArrayList;
 
@@ -33,6 +32,7 @@ public class Main extends ApplicationAdapter {
     private Piece selectedPiece;
     private Side currentPlayer = Side.RED;  // Red goes first
     private BitmapFont font;
+    private GameMode gameMode;
 
     @Override
     public void create() {
@@ -44,8 +44,12 @@ public class Main extends ApplicationAdapter {
         boardTexture = new Texture("xiangqi_gmchess_wood.png");
         loadPieceTextures();
         hintTexture = new Texture("validMovesHint.png");
-        // Initialize game board
-        board = new Board();
+        
+        // Set the game mode - you can modify this to be set by user input
+        gameMode = GameMode.PVE; // or GameMode.PVP
+
+        // Initialize game board with selected mode
+        board = new Board(gameMode);
         validMovesPositions = new ArrayList<>();
 
         touchPos = new Vector2();
