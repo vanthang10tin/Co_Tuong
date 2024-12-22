@@ -2,6 +2,7 @@ package se.xiangqigdx;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -38,7 +39,6 @@ public class Main extends ApplicationAdapter {
         boardTexture = new Texture("xiangqi_gmchess_wood.png");
         loadPieceTextures();
         hintTexture = new Texture("validMovesHint.png");
-
         // Initialize game board
         board = new Board();
         validMovesPositions = new ArrayList<>();
@@ -64,6 +64,10 @@ public class Main extends ApplicationAdapter {
         batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
+        // Draw non-transparent objects (board & pieces)
+        Color c = batch.getColor();
+        batch.setColor(c.r, c.g, c.b, 1f);
+
         // Draw board
         batch.draw(boardTexture, 0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
@@ -75,6 +79,9 @@ public class Main extends ApplicationAdapter {
             batch.draw(pieceTexture, x, y, PIECE_SIZE, PIECE_SIZE);
         }
 
+        // Draw transparent objects (valid moves hints)
+        c = batch.getColor();
+        batch.setColor(c.r, c.g, c.b, 0.8f);
 
         if (validMovesPositions != null && !validMovesPositions.isEmpty())
             for (Position pos : validMovesPositions){
