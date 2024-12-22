@@ -1,5 +1,7 @@
 package se.xiangqigdx;
 
+import com.badlogic.gdx.Gdx;
+
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Stack;
@@ -45,7 +47,7 @@ class Piece {
 
     @Override
     public String toString() {
-        return "" + side + " " + type;
+        return " " + side + " " + type;
     }
 
     public ArrayList<Position> getPseudoValidMovesPositions(Board board) {
@@ -55,15 +57,21 @@ class Piece {
             case CHARIOT: {
                 int[] dx = {1, -1, 0, 0}, dy = {0, 0, 1, -1};
                 for (int i = 0; i < 4; i++) {
-                    int new_x = x, new_y = y;
-                    for (int j = 1; j <= 10; j++) {
-                        new_x += dx[i];
-                        new_y += dy[i];
-                        if (!(0 <= new_x && new_x <= 8 && 0 <= new_y && new_y <= 9)) break;
-                        Piece p = board.getPieceAt(new Position(new_x, new_y));
-                        if (p == null) movesPositions.add(new Position(new_x, new_y));
-                        else if (p != null && p.side != this.side) movesPositions.add(new Position(new_x, new_y));
-                        else break;
+                    for (int j = 1; j < 10; j++) {
+                        int new_x = x + dx[i] * j;
+                        int new_y = y + dy[i] * j;
+                        if (!(0 <= new_x && new_x <= 8 && 0 <= new_y && new_y <= 9)) {
+                            break;
+                        }
+                        Piece p = board.getPieceAt(new_x, new_y);
+                        if (p == null) {
+                            movesPositions.add(new Position(new_x, new_y));
+                        } else if (p.side != this.side) {
+                            movesPositions.add(new Position(new_x, new_y));
+                            break;  // Stop after capturing
+                        } else {
+                            break;  // Stop at own piece
+                        }
                     }
                 }
                 break;
@@ -104,13 +112,15 @@ class Piece {
                 break;
             }
             case ADVISOR: {
-                int[] dx = {1, -1, -1, 1}, dy = {1, 1, -1, -1};
+                int[] dx = {1, 1, -1, -1}, dy = {1, -1, 1, -1};
                 for (int i = 0; i < 4; i++) {
                     int new_x = x + dx[i], new_y = y + dy[i];
-                    if (3 <= new_x && new_x <= 5 && ((side == Side.RED && 7 <= new_y && new_y <= 9) || (side == Side.BLACK && 0 <= new_y && new_y <= 2))) {
+                    if (3 <= new_x && new_x <= 5 && ((side == Side.RED && 7 <= new_y && new_y <= 9) ||
+                        (side == Side.BLACK && 0 <= new_y && new_y <= 2))) {
                         Piece p = board.getPieceAt(new_x, new_y);
-                        if (p == null) movesPositions.add(new Position(new_x, new_y));
-                        else if (p.side == this.side) movesPositions.add(new Position(new_x, new_y));
+                        if (p == null || p.side != this.side) {
+                            movesPositions.add(new Position(new_x, new_y));
+                        }
                     }
                 }
                 break;
@@ -160,16 +170,31 @@ class Piece {
             }
             case SOLDIER: {
                 int dir = (side == Side.BLACK) ? 1 : -1;
-                int[] dx = {0, 1, -1}, dy = {dir, 0, 0};
-                for (int i = 0; i < 3; i++) {
-                    int new_x = x + dx[i], new_y = y + dy[i];
-                    if (!(0 <= new_x && new_x <= 8 && 0 <= new_y && new_y <= 9)) break;
-                    Piece p = board.getPieceAt(new_x, new_y);
-                    if (p == null) movesPositions.add(new Position(new_x, new_y));
-                    else if (p.side != this.side) movesPositions.add(new Position(new_x, new_y));
-                    if (0 <= new_x && new_x <= 8 && ((side == Side.BLACK && 0 <= new_y && new_y <= 4) || (side == Side.RED && 5 <= new_y && new_y <= 9)))
-                        break;
+                boolean crossedRiver = (side == Side.BLACK) ? y > 4 : y < 5;
+
+                if (!crossedRiver) {
+                    // Before crossing river - can only move forward
+                    int new_y = y + dir;
+                    if (0 <= new_y && new_y <= 9) {
+                        Piece p = board.getPieceAt(x, new_y);
+                        if (p == null || p.side != this.side) {
+                            movesPositions.add(new Position(x, new_y));
+                        }
+                    }
+                } else {
+                    // After crossing river - can move forward and sideways
+                    for (int[] move : new int[][]{{0, dir}, {-1, 0}, {1, 0}}) {
+                        int new_x = x + move[0];
+                        int new_y = y + move[1];
+                        if (0 <= new_x && new_x <= 8 && 0 <= new_y && new_y <= 9) {
+                            Piece p = board.getPieceAt(new_x, new_y);
+                            if (p == null || p.side != this.side) {
+                                movesPositions.add(new Position(new_x, new_y));
+                            }
+                        }
+                    }
                 }
+                break;
             }
         }
         return movesPositions;
@@ -356,10 +381,23 @@ public class Board {
     }
 
     public void movePiece(Piece piece, Position newPos) {
+        // Save last move
         Piece capturedPiece = getPieceAt(newPos);
-        moveStack.push(new Move(piece.pos, newPos, capturedPiece));
-        if (capturedPiece != null) pieces.remove(capturedPiece);
+        lastMove = new Move(piece, piece.pos, newPos, capturedPiece);
+        moveStack.push(lastMove);
+
+        // Make move
+        if (capturedPiece != null) {
+            pieces.remove(capturedPiece);
+        }
         piece.pos = newPos;
+
+        // Check game status
+        checkGameStatus();
+
+        if (!gameOver) {
+            switchPlayer();
+        }
     }
 
     public void undoMove() {
@@ -374,27 +412,8 @@ public class Board {
 
     // handle click here
 
-    public ArrayList<Position> getValidMovesPositions(Piece piece) {
-        ArrayList<Position> validMovesPositions = piece.getPseudoValidMovesPositions(this);
-
-        ArrayList<Position> positionsToRemove = new ArrayList<>();
-        for (var move : validMovesPositions) {
-            if (isCheckAfterMove(piece, move))
-                positionsToRemove.add(move);
-        }
-
-        validMovesPositions.removeAll(positionsToRemove);
-        return validMovesPositions;
-    }
-
-    public boolean isCheckAfterMove(Piece piece, Position move) {
-        movePiece(piece, move);
-        boolean inCheck = isInCheck(piece.side);
-        undoMove();
-        return inCheck;
-    }
-
     public boolean isInCheck(Side side) {
+        // Find the general
         Piece general = null;
         for (var piece : pieces) {
             if (piece.type == Type.GENERAL && piece.side == side) {
@@ -405,41 +424,129 @@ public class Board {
 
         if (general == null) return false;
 
+        // Debug log general position
+        Gdx.app.log("DEBUG", "Checking if " + side + " General at (" +
+            general.pos.x + "," + general.pos.y + ") is in check");
+
+        // Check each opposing piece
         for (var piece : pieces) {
             if (piece.side != side) {
-                if (piece.getPseudoValidMovesPositions(this).contains(general.pos))
-                    return true;
+                ArrayList<Position> moves = piece.getPseudoValidMovesPositions(this);
+                boolean canAttackGeneral = moves.contains(general.pos);
+
+                // Debug log attacking pieces
+                if (canAttackGeneral) {
+                    Gdx.app.log("DEBUG", piece.side + " " + piece.type +
+                        " at (" + piece.pos.x + "," + piece.pos.y +
+                        ") can attack general");
+                }
+
+                if (canAttackGeneral) return true;
             }
         }
 
         return false;
     }
 
-    public boolean isCheckmate() {
-        for (var piece : pieces){
-            if (piece.side == currentPlayer) {
-                if (!getValidMovesPositions(piece).isEmpty())
-                    return false;
-            }
+    public boolean isCheckAfterMove(Piece piece, Position move) {
+        // Save original state
+        Position originalPos = new Position(piece.pos.x, piece.pos.y);
+        Piece capturedPiece = getPieceAt(move);
+
+        // Simulate move
+        if (capturedPiece != null) {
+            pieces.remove(capturedPiece);
         }
-        return isInCheck(currentPlayer);
+        piece.pos = move;
+
+        // Check if the move results in check
+        boolean inCheck = isInCheck(piece.side);
+
+        // Restore original state
+        piece.pos = originalPos;
+        if (capturedPiece != null) {
+            pieces.add(capturedPiece);
+        }
+
+        return inCheck;
     }
 
-    public boolean checkStalemate(){
-        if (isInCheck(currentPlayer))
+    public ArrayList<Position> getValidMovesPositions(Piece piece) {
+        ArrayList<Position> validMoves = new ArrayList<>();
+        ArrayList<Position> potentialMoves = piece.getPseudoValidMovesPositions(this);
+
+        // Allow any piece to move if it prevents/resolves check
+        for (Position move : potentialMoves) {
+            if (!isCheckAfterMove(piece, move)) {
+                validMoves.add(move);
+            }
+        }
+
+        return validMoves;
+    }
+
+    public boolean isCheckmate() {
+        Side defendingSide = currentPlayer;
+
+        if (!isInCheck(defendingSide)) {
+            Gdx.app.log("DEBUG", defendingSide + " is not in check, so cannot be checkmate");
             return false;
-        for (var piece : pieces){
-            if (piece.side == currentPlayer)
-                if (!getValidMovesPositions(piece).isEmpty()){
+        }
+
+        // Check every piece of the defending side
+        for (Piece piece : pieces) {
+            if (piece.side == defendingSide) {
+                ArrayList<Position> validMoves = getValidMovesPositions(piece);
+                Gdx.app.log("DEBUG", defendingSide + " " + piece.type +
+                    " at (" + piece.pos.x + "," + piece.pos.y +
+                    ") has " + validMoves.size() + " valid moves");
+
+                if (!validMoves.isEmpty()) {
+                    Gdx.app.log("DEBUG", "Found legal move to escape check - not checkmate");
                     return false;
                 }
+            }
+        }
+
+        Gdx.app.log("DEBUG", "No legal moves found - CHECKMATE!");
+        return true;
+    }
+
+    public void checkGameStatus() {
+        // Add debug logs
+        Gdx.app.log("DEBUG", "Checking game status");
+        Gdx.app.log("DEBUG", "Is in check: " + isInCheck(currentPlayer));
+
+        if (isCheckmate()) {
+            Gdx.app.log("DEBUG", "Checkmate detected!");
+            gameOver = true;
+            winner = (currentPlayer == Side.RED) ? Side.BLACK : Side.RED;
+        } else if (checkStalemate()) {
+            Gdx.app.log("DEBUG", "Stalemate detected!");
+            gameOver = true;
+            isStalemate = true;
+            winner = null;
+        }
+
+        Gdx.app.log("DEBUG", "Game over status: " + gameOver);
+    }
+
+    public boolean checkStalemate() {
+        // Must not be in check
+        if (isInCheck(currentPlayer)) {
+            return false;
+        }
+
+        // Check if any piece has legal moves
+        for (Piece piece : pieces) {
+            if (piece.side == currentPlayer && !getValidMovesPositions(piece).isEmpty()) {
+                return false;
+            }
         }
         return true;
     }
 
-    public void switchPlayer(){
-        if (currentPlayer == Side.BLACK)
-            currentPlayer = Side.RED;
-        else currentPlayer = Side.RED;
+    public void switchPlayer() {
+        currentPlayer = (currentPlayer == Side.BLACK) ? Side.RED : Side.BLACK;
     }
 }
