@@ -396,16 +396,16 @@ public class Board {
         Piece capturedPiece = getPieceAt(newPos);
         lastMove = new Move(piece, piece.pos, newPos, capturedPiece);
         moveStack.push(lastMove);
-    
+
         // Make move
         if (capturedPiece != null) {
             pieces.remove(capturedPiece);
         }
         piece.pos = newPos;
-        
+
         // Switch player first
         switchPlayer();
-        
+
         // Then check game status
         checkGameStatus();
 
@@ -488,51 +488,51 @@ public class Board {
         // Store original state
         Position originalPos = new Position(piece.pos.x, piece.pos.y);
         Piece capturedPiece = getPieceAt(move);
-        
+
         // Simulate move
         if (capturedPiece != null) {
             pieces.remove(capturedPiece);
         }
         piece.pos = move;
-    
+
         // Check if the move results in check
         boolean inCheck = isInCheck(piece.side);
-    
+
         // Restore original state
         piece.pos = originalPos;
         if (capturedPiece != null) {
             pieces.add(capturedPiece);
         }
-    
+
         return inCheck;
     }
 
     public ArrayList<Position> getValidMovesPositions(Piece piece) {
         ArrayList<Position> validMoves = new ArrayList<>();
         ArrayList<Position> potentialMoves = piece.getPseudoValidMovesPositions(this);
-    
+
         // Create copy to avoid concurrent modification
         ArrayList<Position> movesToCheck = new ArrayList<>(potentialMoves);
-    
+
         for (Position move : movesToCheck) {
             if (!isCheckAfterMove(piece, move)) {
                 validMoves.add(move);
             }
         }
-    
+
         return validMoves;
     }
 
     public boolean isCheckmate() {
         Side defendingSide = currentPlayer;
-    
+
         if (!isInCheck(defendingSide)) {
             return false;
         }
-    
+
         // Create a copy of pieces to avoid concurrent modification
         ArrayList<Piece> piecesToCheck = new ArrayList<>(pieces);
-    
+
         // Check every piece of the defending side
         for (Piece piece : piecesToCheck) {
             if (piece.side == defendingSide) {
@@ -542,7 +542,7 @@ public class Board {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -550,14 +550,14 @@ public class Board {
         // First check if either general is captured
         boolean hasBlackGeneral = false;
         boolean hasRedGeneral = false;
-        
+
         for (Piece piece : pieces) {
             if (piece.type == Type.GENERAL) {
                 if (piece.side == Side.BLACK) hasBlackGeneral = true;
                 if (piece.side == Side.RED) hasRedGeneral = true;
             }
         }
-        
+
         if (!hasBlackGeneral) {
             gameOver = true;
             winner = Side.RED;
@@ -568,7 +568,7 @@ public class Board {
             winner = Side.BLACK;
             return;
         }
-    
+
         // Check for checkmate
         if (isInCheck(currentPlayer)) {
             if (isCheckmate()) {
@@ -577,7 +577,7 @@ public class Board {
                 Gdx.app.log("DEBUG", "Checkmate! Winner: " + winner);
                 return;
             }
-        } 
+        }
         // Check for stalemate
         else if (checkStalemate()) {
             gameOver = true;
@@ -585,7 +585,7 @@ public class Board {
             winner = null;
             return;
         }
-        
+
         // Check for flying general mate
         if (isGeneralsFacing()) {
             gameOver = true;
@@ -597,7 +597,7 @@ public class Board {
     private boolean isGeneralsFacing() {
         Piece redGeneral = null;
         Piece blackGeneral = null;
-        
+
         // Find both generals
         for (Piece piece : pieces) {
             if (piece.type == Type.GENERAL) {
@@ -605,20 +605,20 @@ public class Board {
                 if (piece.side == Side.BLACK) blackGeneral = piece;
             }
         }
-        
+
         if (redGeneral == null || blackGeneral == null) return false;
-        
+
         // Check if generals are on same column
         if (redGeneral.pos.x != blackGeneral.pos.x) return false;
-        
+
         // Check if there are pieces between generals
         int minY = Math.min(redGeneral.pos.y, blackGeneral.pos.y);
         int maxY = Math.max(redGeneral.pos.y, blackGeneral.pos.y);
-        
+
         for (int y = minY + 1; y < maxY; y++) {
             if (getPieceAt(redGeneral.pos.x, y) != null) return false;
         }
-        
+
         return true;
     }
 
