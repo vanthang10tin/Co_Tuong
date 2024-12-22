@@ -1,21 +1,22 @@
 package se.xiangqigdx;
 
+import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 import java.util.ArrayList;
 
-public class VSPlayerScreen implements Screen{
-    final Main game;
+public class VSAIScreen implements Screen {
+    Main game;
 
     private SpriteBatch batch;
     private Texture boardTexture;
@@ -34,9 +35,11 @@ public class VSPlayerScreen implements Screen{
     private Piece selectedPiece;
     private Side currentPlayer = Side.RED;  // Red goes first
     private BitmapFont font;
+    private GameMode gameMode;
 
-    public VSPlayerScreen(final Main game){
+    public VSAIScreen(Main game){
         this.game = game;
+
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         viewport = new FitViewport(BOARD_WIDTH, BOARD_HEIGHT, camera);
@@ -45,8 +48,12 @@ public class VSPlayerScreen implements Screen{
         boardTexture = new Texture("xiangqi_gmchess_wood.png");
         loadPieceTextures();
         hintTexture = new Texture("validMovesHint.png");
-        // Initialize game board
-        board = new Board();
+
+        // Set the game mode - you can modify this to be set by user input
+        gameMode = GameMode.PVE; // or GameMode.PVP
+
+        // Initialize game board with selected mode
+        board = new Board(gameMode);
         validMovesPositions = new ArrayList<>();
 
         touchPos = new Vector2();
@@ -159,7 +166,6 @@ public class VSPlayerScreen implements Screen{
     public void show() {
 
     }
-
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);

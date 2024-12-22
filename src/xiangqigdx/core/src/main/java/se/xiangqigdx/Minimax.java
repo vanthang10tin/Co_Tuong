@@ -134,21 +134,21 @@ public class Minimax {
                         // Create a copy of the board state
                         Position originalPos = new Position(piece.pos.x, piece.pos.y);
                         Piece capturedPiece = board.getPieceAt(move);
-                        
+
                         // Make move
                         if (capturedPiece != null) {
                             board.pieces.remove(capturedPiece);
                         }
                         piece.pos = move;
-                        
+
                         int score = minimax(board, depth + 1, alpha, beta, maximizingSide, false).score;
-                        
+
                         // Restore board state
                         piece.pos = originalPos;
                         if (capturedPiece != null) {
                             board.pieces.add(capturedPiece);
                         }
-                        
+
                         if (score > maxScore) {
                             maxScore = score;
                             bestMove = new Move(piece, move);
@@ -176,21 +176,21 @@ public class Minimax {
                         // Create a copy of the board state
                         Position originalPos = new Position(piece.pos.x, piece.pos.y);
                         Piece capturedPiece = board.getPieceAt(move);
-                        
+
                         // Make move
                         if (capturedPiece != null) {
                             board.pieces.remove(capturedPiece);
                         }
                         piece.pos = move;
-                        
+
                         int score = minimax(board, depth + 1, alpha, beta, maximizingSide, true).score;
-                        
+
                         // Restore board state
                         piece.pos = originalPos;
                         if (capturedPiece != null) {
                             board.pieces.add(capturedPiece);
                         }
-                        
+
                         minScore = Math.min(minScore, score);
                         beta = Math.min(beta, score);
                         if (beta <= alpha) break outerMin;

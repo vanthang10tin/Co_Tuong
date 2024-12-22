@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class MainMenuScreen implements Screen {
@@ -31,8 +32,14 @@ public class MainMenuScreen implements Screen {
         game.batch.draw(game.texture, 0, 0, game.viewport.getWorldWidth(), game.viewport.getWorldHeight());
         game.batch.end();
 
-        if (Gdx.input.isTouched()) {
-            game.setScreen(new VSPlayerScreen(game));
+        if (Gdx.input.justTouched()) {
+            game.touchPos.set(Gdx.input.getX(), Gdx.input.getY());
+            game.viewport.unproject(game.touchPos);
+            int x = (int) game.touchPos.x, y = (int) game.touchPos.y;
+            if (y >= 6 )
+                game.setScreen(new VSAIScreen(game));
+            else if (y >= 4)
+                game.setScreen(new VSPlayerScreen(game));
             dispose();
         }
 
