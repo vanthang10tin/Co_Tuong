@@ -35,6 +35,25 @@ public class VSPlayerScreen implements Screen{
     private Side currentPlayer = Side.RED;  // Red goes first
     private BitmapFont font;
 
+    // Add after other constants
+    public enum SkinMode {
+        CHINESE("Chinese"),
+        WESTERN("English");
+        
+        private final String prefix;
+        
+        SkinMode(String prefix) {
+            this.prefix = prefix;
+        }
+        
+        public String getPrefix() {
+            return prefix;
+        }
+    }
+
+    // Add with other class variables
+    private SkinMode currentSkin = SkinMode.CHINESE;
+
     public VSPlayerScreen(final Main game){
         this.game = game;
         batch = new SpriteBatch();
@@ -60,8 +79,20 @@ public class VSPlayerScreen implements Screen{
         pieceTextures = new Texture[14]; // 7 piece types * 2 sides
         String[] types = {"King", "Advisor", "Elephant", "Horse", "Rook", "Cannon", "Pawn"};
         for (int i = 0; i < types.length; i++) {
-            pieceTextures[i] = new Texture("Pieces/Chinese-" + types[i] + "-Red.png");
-            pieceTextures[i + 7] = new Texture("Pieces/Chinese-" + types[i] + "-Black.png");
+            pieceTextures[i] = new Texture("Pieces/" + currentSkin.getPrefix() + "-" + types[i] + "-Red.png");
+            pieceTextures[i + 7] = new Texture("Pieces/" + currentSkin.getPrefix() + "-" + types[i] + "-Black.png");
+        }
+    }
+
+    // Add new method to change skins
+    public void changeSkin(SkinMode newSkin) {
+        if (currentSkin != newSkin) {
+            // Dispose old textures
+            for (Texture texture : pieceTextures) {
+                texture.dispose();
+            }
+            currentSkin = newSkin;
+            loadPieceTextures();
         }
     }
 
@@ -191,6 +222,16 @@ public class VSPlayerScreen implements Screen{
     }
 
     public void input(){
+        // Handle skin change with 'S' key
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)) {
+            if (currentSkin == SkinMode.CHINESE) {
+                changeSkin(SkinMode.WESTERN);
+            } else {
+                changeSkin(SkinMode.CHINESE);
+            }
+        }
+
+        // ...existing input code for piece movement...
         if (!board.isGameOver() && Gdx.input.justTouched()) {
             touchPos.set(Gdx.input.getX(), Gdx.input.getY());
             viewport.unproject(touchPos);
