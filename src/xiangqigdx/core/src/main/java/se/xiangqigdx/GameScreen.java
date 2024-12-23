@@ -27,7 +27,6 @@ public class GameScreen implements Screen {
     private OrthographicCamera camera;
     private Viewport viewport;
     private Vector2 touchPos;
-    private static final float BOARD_RATIO = 0.85f;  // Board takes 85% of available space
     private static final float BOARD_ASPECT_RATIO = 0.9f; // Board width/height ratio
     private float boardWidth;
     private float boardHeight;
@@ -43,8 +42,8 @@ public class GameScreen implements Screen {
     private SkinMode skinMode;
     private static final float SCREEN_WIDTH = 1100;  // Wider than board
     private static final float SCREEN_HEIGHT = 1200; // Taller than board
-    private static final float BACK_BUTTON_SIZE = 40;
-    private static final float BACK_BUTTON_PADDING = 20;
+    private static final float BACK_BUTTON_SIZE = 90;  
+    private static final float BACK_BUTTON_PADDING = 30;  // Increased padding for better spacing
     private float BACK_BUTTON_X;
     private float BACK_BUTTON_Y;
     private Texture backButtonTexture;  // Add this field
@@ -62,6 +61,7 @@ public class GameScreen implements Screen {
     private boolean waitingForAI = false;
     private float aiDelay = 0.5f; // Half second delay before AI moves
     private float aiTimer = 0;
+    private BitmapFont gameOverFont;
 
 
     public GameScreen(){
@@ -95,6 +95,11 @@ public class GameScreen implements Screen {
 
         font = new BitmapFont();
         font.getData().setScale(4); // Make text larger
+        
+        // Create larger font for game over message
+        gameOverFont = new BitmapFont();
+        gameOverFont.getData().setScale(8); // Larger scale for game over text
+        gameOverFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         shapeRenderer = new ShapeRenderer();
     }
@@ -130,6 +135,11 @@ public class GameScreen implements Screen {
 
         font = new BitmapFont();
         font.getData().setScale(4); // Make text larger
+        
+        // Create larger font for game over message
+        gameOverFont = new BitmapFont();
+        gameOverFont.getData().setScale(8); // Larger scale for game over text
+        gameOverFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         shapeRenderer = new ShapeRenderer();
     }
@@ -198,9 +208,9 @@ public class GameScreen implements Screen {
         boardX = (screenWidth - boardWidth) / 2;
         boardY = (screenHeight - boardHeight) / 2;
         
-        // Update back button position
-        BACK_BUTTON_X = BOARD_PADDING / 2;
-        BACK_BUTTON_Y = screenHeight - BACK_BUTTON_SIZE - BOARD_PADDING / 2;
+        // Update back button position - moved slightly inward from the edge
+        BACK_BUTTON_X = BACK_BUTTON_PADDING;
+        BACK_BUTTON_Y = screenHeight - BACK_BUTTON_SIZE - BACK_BUTTON_PADDING;
     }
 
     @Override
@@ -325,24 +335,35 @@ public class GameScreen implements Screen {
                 resultText = (board.getWinner() == Side.RED ? "Red" : "Black") + " Wins!";
             }
 
-            // Center the text using GlyphLayout
+            // Center the text on the board (not screen)
             com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
-            layout.setText(font, resultText);
-            float textX = (SCREEN_WIDTH - layout.width) / 2;
-            float textY = (SCREEN_HEIGHT + layout.height) / 2;
+            layout.setText(gameOverFont, resultText);
+            float textX = boardX + (boardWidth - layout.width) / 2;
+            float textY = boardY + (boardHeight + layout.height) / 2;
 
-            // Draw shadow/outline effect
-            font.setColor(Color.BLACK);
-            font.draw(batch, resultText, textX-2, textY-2);
-            font.draw(batch, resultText, textX+2, textY+2);
+            // Draw text with better looking effects
+            // Draw outer glow/shadow
+            gameOverFont.setColor(0, 0, 0, 0.5f);
+            for(int i = -3; i <= 3; i++) {
+                for(int j = -3; j <= 3; j++) {
+                    if(i*i + j*j <= 10) // Circle pattern for glow
+                        gameOverFont.draw(batch, resultText, textX + i, textY + j);
+                }
+            }
 
-            // Draw main text
-            font.setColor(Color.YELLOW);
-            font.draw(batch, resultText, textX, textY);
+            // Draw main text with gradient effect
+            Color textColor = board.getWinner() == Side.RED ? 
+                new Color(1, 0.2f, 0.2f, 1) : // Red for red winner
+                new Color(0.2f, 0.2f, 0.2f, 1); // Dark gray for black winner
+            if (board.isStalemate()) {
+                textColor = new Color(0.9f, 0.7f, 0.1f, 1); // Gold for stalemate
+            }
+            gameOverFont.setColor(textColor);
+            gameOverFont.draw(batch, resultText, textX, textY);
         }
 
-        // Draw back button
-        batch.setColor(0.8f, 0.8f, 0.8f, 0.8f);  // Light gray, semi-transparent
+        // Draw back button with larger size and more opacity
+        batch.setColor(0.8f, 0.8f, 0.8f, 0.9f);  // Increased opacity to 0.9
         batch.draw(backButtonTexture, BACK_BUTTON_X, BACK_BUTTON_Y, BACK_BUTTON_SIZE, BACK_BUTTON_SIZE);
         batch.setColor(Color.WHITE);
 
@@ -403,9 +424,10 @@ public class GameScreen implements Screen {
             texture.dispose();
         }
         font.dispose();
-        backButtonTexture.dispose();  // Add this line
+        backButtonTexture.dispose();  
         shapeRenderer.dispose();
         backgroundTexture.dispose();
+        gameOverFont.dispose();
     }
 
     public void input(){

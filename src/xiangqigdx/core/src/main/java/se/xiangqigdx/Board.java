@@ -1,7 +1,5 @@
 package se.xiangqigdx;
 
-import com.badlogic.gdx.Gdx;
-
 import java.util.ArrayList;
 import java.util.Stack;
 
