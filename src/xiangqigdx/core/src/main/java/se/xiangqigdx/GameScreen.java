@@ -48,14 +48,15 @@ public class GameScreen implements Screen {
     private float BACK_BUTTON_Y;
     private Texture backButtonTexture;  // Add this field
 
-    public GameScreen(Main game){
+
+    public GameScreen(){
         this.game = game;
 
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         viewport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
         camera.position.set(viewport.getWorldWidth() / 2, viewport.getWorldHeight() / 2, 0);
-        
+
         // Initialize dimensions
         updateBoardDimensions(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -87,7 +88,7 @@ public class GameScreen implements Screen {
         camera = new OrthographicCamera();
         viewport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
         camera.position.set(viewport.getWorldWidth() / 2, viewport.getWorldHeight() / 2, 0);
-        
+
         // Initialize dimensions
         updateBoardDimensions(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -116,7 +117,7 @@ public class GameScreen implements Screen {
         pieceTextures = new Texture[14]; // 7 piece types * 2 sides
         String[] types = {"King", "Advisor", "Elephant", "Horse", "Rook", "Cannon", "Pawn"};
         String skinPrefix = getSkinPrefix();
-        
+
         for (int i = 0; i < types.length; i++) {
             pieceTextures[i] = new Texture("Pieces/" + skinPrefix + types[i] + "-Red.png");
             pieceTextures[i + 7] = new Texture("Pieces/" + skinPrefix + types[i] + "-Black.png");
@@ -152,11 +153,11 @@ public class GameScreen implements Screen {
 
     private void updateBoardDimensions(int screenWidth, int screenHeight) {
         boolean isPortrait = screenHeight > screenWidth;
-        
+
         if (isPortrait) {
             boardWidth = screenWidth * BOARD_RATIO;
             boardHeight = boardWidth / BOARD_ASPECT_RATIO;
-            
+
             // Ensure board height doesn't exceed screen height
             if (boardHeight > screenHeight * BOARD_RATIO) {
                 boardHeight = screenHeight * BOARD_RATIO;
@@ -165,23 +166,23 @@ public class GameScreen implements Screen {
         } else {
             boardHeight = screenHeight * BOARD_RATIO;
             boardWidth = boardHeight * BOARD_ASPECT_RATIO;
-            
+
             // Ensure board width doesn't exceed screen width
             if (boardWidth > screenWidth * BOARD_RATIO) {
                 boardWidth = screenWidth * BOARD_RATIO;
                 boardHeight = boardWidth / BOARD_ASPECT_RATIO;
             }
         }
-        
+
         // Update dependent dimensions
         cellSize = boardWidth / 9;
         pieceSize = cellSize * 0.9f;
         validMoveHintSize = cellSize * 0.5f;
-        
+
         // Center the board
         boardX = (screenWidth - boardWidth) / 2;
         boardY = (screenHeight - boardHeight) / 2;
-        
+
         // Update back button position relative to screen size
         BACK_BUTTON_X = BACK_BUTTON_PADDING;
         BACK_BUTTON_Y = screenHeight - BACK_BUTTON_SIZE - BACK_BUTTON_PADDING;
@@ -196,7 +197,7 @@ public class GameScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
-        
+
         // Draw board with current dimensions
         batch.draw(boardTexture, boardX, boardY, boardWidth, boardHeight);
 
@@ -316,7 +317,7 @@ public class GameScreen implements Screen {
         if (Gdx.input.justTouched()) {
             touchPos.set(Gdx.input.getX(), Gdx.input.getY());
             viewport.unproject(touchPos);
-            
+
             // Check back button first
             if (touchPos.x >= BACK_BUTTON_X && touchPos.x <= BACK_BUTTON_X + BACK_BUTTON_SIZE &&
                 touchPos.y >= BACK_BUTTON_Y && touchPos.y <= BACK_BUTTON_Y + BACK_BUTTON_SIZE) {
@@ -328,9 +329,9 @@ public class GameScreen implements Screen {
             // Adjust touch position for board coordinates
             touchPos.x -= boardX;
             touchPos.y -= boardY;
-            
+
             // Only process board touches if within board bounds
-            if (touchPos.x >= 0 && touchPos.x < boardWidth && 
+            if (touchPos.x >= 0 && touchPos.x < boardWidth &&
                 touchPos.y >= 0 && touchPos.y < boardHeight) {
                 int x = (int) (touchPos.x/cellSize);
                 int y = 9 - (int) (touchPos.y/cellSize);

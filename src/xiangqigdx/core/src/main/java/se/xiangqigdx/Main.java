@@ -17,6 +17,7 @@ public class Main extends Game {
     public Texture texture;
     public Vector2 touchPos;
     public SkinMode currentSkinMode; // Add field
+    public Texture chinesePieceTexture, englishPieceTexture;
 
     public void create(){
         batch = new SpriteBatch();
@@ -24,6 +25,8 @@ public class Main extends Game {
         camera = new OrthographicCamera();
         viewport = new FitViewport(8, 8, camera);
         texture = new Texture("mainmenu.png");
+        chinesePieceTexture = new Texture("Pieces/Chinese-Pawn-Red.png");
+        englishPieceTexture = new Texture("Pieces/English-Pawn-Red.png");
         font.setUseIntegerPositions(false);
         font.getData().setScale(viewport.getWorldHeight()/ Gdx.graphics.getHeight());
         touchPos = new Vector2();
