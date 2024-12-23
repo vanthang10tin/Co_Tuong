@@ -51,11 +51,17 @@ public class GameScreen implements Screen {
     private Position lastMoveFrom;
     private Position lastMoveTo;
     private static final Color LAST_MOVE_COLOR = new Color(0.2f, 0.4f, 0.8f, 0.7f); // Soft blue
-    private static final float HIGHLIGHT_SCALE = 1.05f; // Highlight circle is 20% bigger than pieces
+    private static final float HIGHLIGHT_SCALE = 1.05f; // Highlight ciracle is 20% bigger than pieces
     private static final float CIRCLE_LINE_WIDTH = 2f; // Slightly thicker line for better visibility
     private ShapeRenderer shapeRenderer;
     private static final Color CHECK_COLOR = new Color(0.9f, 0.2f, 0.2f, 0.8f); // Bright red
     private static final float CHECK_CIRCLE_WIDTH = 3f; // Slightly thicker than move circles
+    private Texture backgroundTexture;
+    private static final Color BACKGROUND_COLOR = new Color(0.82f, 0.71f, 0.55f, 1f); // Warm beige/wood color
+    private static final float BOARD_PADDING = 50f; // Padding around the board
+    private boolean waitingForAI = false;
+    private float aiDelay = 0.5f; // Half second delay before AI moves
+    private float aiTimer = 0;
 
 
     public GameScreen(){
@@ -70,6 +76,7 @@ public class GameScreen implements Screen {
         updateBoardDimensions(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         // Load textures
+        backgroundTexture = new Texture("background_texture.png"); // Add your background texture
         boardTexture = new Texture("xiangqi_gmchess_wood.png");
         skinMode = SkinMode.CHINESE; // Default skin
         loadPieceTextures();
@@ -104,6 +111,7 @@ public class GameScreen implements Screen {
         updateBoardDimensions(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         // Load textures
+        backgroundTexture = new Texture("background_texture.png"); // Add your background texture
         boardTexture = new Texture("xiangqi_gmchess_wood.png");
         skinMode = game.currentSkinMode; // Use skin mode from Main
         loadPieceTextures();
@@ -165,51 +173,65 @@ public class GameScreen implements Screen {
     }
 
     private void updateBoardDimensions(int screenWidth, int screenHeight) {
-        boolean isPortrait = screenHeight > screenWidth;
-
-        if (isPortrait) {
-            boardWidth = screenWidth * BOARD_RATIO;
-            boardHeight = boardWidth / BOARD_ASPECT_RATIO;
-
-            // Ensure board height doesn't exceed screen height
-            if (boardHeight > screenHeight * BOARD_RATIO) {
-                boardHeight = screenHeight * BOARD_RATIO;
-                boardWidth = boardHeight * BOARD_ASPECT_RATIO;
-            }
+        // Calculate board size to fit screen with padding
+        float maxBoardWidth = screenWidth - (BOARD_PADDING * 2);
+        float maxBoardHeight = screenHeight - (BOARD_PADDING * 2);
+        
+        float aspectRatio = BOARD_ASPECT_RATIO; // width/height
+        
+        if (maxBoardWidth / maxBoardHeight > aspectRatio) {
+            // Height is the limiting factor
+            boardHeight = maxBoardHeight;
+            boardWidth = boardHeight * aspectRatio;
         } else {
-            boardHeight = screenHeight * BOARD_RATIO;
-            boardWidth = boardHeight * BOARD_ASPECT_RATIO;
-
-            // Ensure board width doesn't exceed screen width
-            if (boardWidth > screenWidth * BOARD_RATIO) {
-                boardWidth = screenWidth * BOARD_RATIO;
-                boardHeight = boardWidth / BOARD_ASPECT_RATIO;
-            }
+            // Width is the limiting factor
+            boardWidth = maxBoardWidth;
+            boardHeight = boardWidth / aspectRatio;
         }
 
         // Update dependent dimensions
         cellSize = boardWidth / 9;
         pieceSize = cellSize * 0.9f;
         validMoveHintSize = cellSize * 0.5f;
-
+        
         // Center the board
         boardX = (screenWidth - boardWidth) / 2;
         boardY = (screenHeight - boardHeight) / 2;
-
-        // Update back button position relative to screen size
-        BACK_BUTTON_X = BACK_BUTTON_PADDING;
-        BACK_BUTTON_Y = screenHeight - BACK_BUTTON_SIZE - BACK_BUTTON_PADDING;
+        
+        // Update back button position
+        BACK_BUTTON_X = BOARD_PADDING / 2;
+        BACK_BUTTON_Y = screenHeight - BACK_BUTTON_SIZE - BOARD_PADDING / 2;
     }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.2f, 0.2f, 0.2f, 1);  // Darker background
+        // Handle AI move with delay
+        if (waitingForAI) {
+            aiTimer += delta;
+            if (aiTimer >= aiDelay) {
+                Move aiMove = board.makeAIMove();
+                if (aiMove != null) {
+                    lastMoveFrom = aiMove.from;
+                    lastMoveTo = aiMove.to;
+                }
+                currentPlayer = board.getCurrentPlayer();
+                waitingForAI = false;
+                aiTimer = 0;
+            }
+        }
+
+        Gdx.gl.glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
+        
+        // Draw background
+        batch.setColor(BACKGROUND_COLOR);
+        batch.draw(backgroundTexture, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+        batch.setColor(Color.WHITE);
 
         // Draw board with current dimensions
         batch.draw(boardTexture, boardX, boardY, boardWidth, boardHeight);
@@ -383,6 +405,7 @@ public class GameScreen implements Screen {
         font.dispose();
         backButtonTexture.dispose();  // Add this line
         shapeRenderer.dispose();
+        backgroundTexture.dispose();
     }
 
     public void input(){
@@ -398,35 +421,45 @@ public class GameScreen implements Screen {
                 return;
             }
 
-            // Adjust touch position for board coordinates
-            touchPos.x -= boardX;
-            touchPos.y -= boardY;
+            // Allow moves if:
+            // 1. In PVP mode - any player can move during their turn
+            // 2. In PVE mode - only player1 can move and only during their turn
+            if (!waitingForAI && (gameMode == GameMode.PVP || currentPlayer == board.player1Side)) {
+                // Adjust touch position for board coordinates
+                touchPos.x -= boardX;
+                touchPos.y -= boardY;
 
-            // Only process board touches if within board bounds
-            if (touchPos.x >= 0 && touchPos.x < boardWidth &&
-                touchPos.y >= 0 && touchPos.y < boardHeight) {
-                int x = (int) (touchPos.x/cellSize);
-                int y = 9 - (int) (touchPos.y/cellSize);
+                // Only process board touches if within board bounds
+                if (touchPos.x >= 0 && touchPos.x < boardWidth &&
+                    touchPos.y >= 0 && touchPos.y < boardHeight) {
+                    int x = (int) (touchPos.x/cellSize);
+                    int y = 9 - (int) (touchPos.y/cellSize);
 
-                Piece touchedPiece = board.getPieceAt(x, y);
+                    Piece touchedPiece = board.getPieceAt(x, y);
 
-                if (selectedPiece == null) {
-                    if (touchedPiece != null && touchedPiece.side == currentPlayer) {
-                        selectedPiece = touchedPiece;
-                        validMovesPositions = board.getValidMovesPositions(selectedPiece);
+                    if (selectedPiece == null) {
+                        if (touchedPiece != null && touchedPiece.side == currentPlayer) {
+                            selectedPiece = touchedPiece;
+                            validMovesPositions = board.getValidMovesPositions(selectedPiece);
+                        }
+                    } else {
+                        Position newPos = new Position(x, y);
+                        if (validMovesPositions.contains(newPos)) {
+                            // Store last move before executing it
+                            lastMoveFrom = new Position(selectedPiece.pos.x, selectedPiece.pos.y);
+                            lastMoveTo = new Position(x, y);
+                            
+                            board.movePiece(selectedPiece, newPos);
+                            currentPlayer = board.getCurrentPlayer();
+                            
+                            // If in PVE mode and it's AI's turn, set waiting flag
+                            if (gameMode == GameMode.PVE && currentPlayer == board.player2Side) {
+                                waitingForAI = true;
+                            }
+                        }
+                        selectedPiece = null;
+                        validMovesPositions.clear();
                     }
-                } else {
-                    Position newPos = new Position(x, y);
-                    if (validMovesPositions.contains(newPos)) {
-                        // Store last move before executing it
-                        lastMoveFrom = new Position(selectedPiece.pos.x, selectedPiece.pos.y);
-                        lastMoveTo = new Position(x, y);
-                        
-                        board.movePiece(selectedPiece, newPos);
-                        currentPlayer = board.getCurrentPlayer(); // Update current player from board
-                    }
-                    selectedPiece = null;
-                    validMovesPositions.clear();
                 }
             }
         }

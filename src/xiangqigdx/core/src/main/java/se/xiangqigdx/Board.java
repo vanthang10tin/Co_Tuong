@@ -26,6 +26,8 @@ public class Board {
     Stack<Move> moveStack;
     private GameMode gameMode;
     private boolean isProcessingAIMove = false;
+    private boolean inCheck = false;  // Add field to cache check status
+    private Side lastCheckedSide = null;  // Track which side was last checked
 
     public Side getCurrentPlayer() {
         return currentPlayer;
@@ -152,26 +154,26 @@ public class Board {
         // Switch player first
         switchPlayer();
 
+        // Reset check status cache since a move was made
+        lastCheckedSide = null;
+
         // Then check game status
         checkGameStatus();
-
-        // If it's PVE mode and it's AI's turn, make AI move
-        // Add a flag to prevent recursive AI moves
-        if (gameMode == GameMode.PVE && currentPlayer == player2Side && !gameOver && !isProcessingAIMove) {
-            makeAIMove();
-        }
     }
 
-    private void makeAIMove() {
+    public Move makeAIMove() {
         isProcessingAIMove = true;
+        Move aiMove = null;
         try {
             MinimaxResult result = Minimax.minimax(this, 0, Integer.MIN_VALUE, Integer.MAX_VALUE, currentPlayer, true);
             if (result.move != null) {
                 movePiece(result.move.pieceToMove, result.move.to);
+                aiMove = result.move;
             }
         } finally {
             isProcessingAIMove = false;
         }
+        return aiMove;
     }
 
     public void undoMove() {
@@ -195,6 +197,11 @@ public class Board {
     // handle click here
 
     public boolean isInCheck(Side side) {
+        // Return cached result if checking same side and no moves made since last check
+        if (side == lastCheckedSide && lastMove == null) {
+            return inCheck;
+        }
+
         // Find the general
         Piece general = null;
         for (var piece : pieces) {
@@ -206,27 +213,20 @@ public class Board {
 
         if (general == null) return false;
 
-        // Debug log general position
-        Gdx.app.log("DEBUG", "Checking if " + side + " General at (" +
-            general.pos.x + "," + general.pos.y + ") is in check");
-
         // Check each opposing piece
         for (var piece : pieces) {
             if (piece.side != side) {
                 ArrayList<Position> moves = piece.getPseudoValidMovesPositions(this);
-                boolean canAttackGeneral = moves.contains(general.pos);
-
-                // Debug log attacking pieces
-                if (canAttackGeneral) {
-                    Gdx.app.log("DEBUG", piece.side + " " + piece.type +
-                        " at (" + piece.pos.x + "," + piece.pos.y +
-                        ") can attack general");
+                if (moves.contains(general.pos)) {
+                    inCheck = true;
+                    lastCheckedSide = side;
+                    return true;
                 }
-
-                if (canAttackGeneral) return true;
             }
         }
 
+        inCheck = false;
+        lastCheckedSide = side;
         return false;
     }
 
@@ -320,7 +320,6 @@ public class Board {
             if (isCheckmate()) {
                 gameOver = true;
                 winner = (currentPlayer == Side.RED) ? Side.BLACK : Side.RED;
-                Gdx.app.log("DEBUG", "Checkmate! Winner: " + winner);
                 return;
             }
         }
