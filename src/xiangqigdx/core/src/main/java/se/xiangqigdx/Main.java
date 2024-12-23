@@ -16,6 +16,8 @@ public class Main extends Game {
     public FitViewport viewport;
     public Texture texture;
     public Vector2 touchPos;
+    public SkinMode currentSkinMode; // Add field
+
     public void create(){
         batch = new SpriteBatch();
         font = new BitmapFont();
@@ -25,6 +27,7 @@ public class Main extends Game {
         font.setUseIntegerPositions(false);
         font.getData().setScale(viewport.getWorldHeight()/ Gdx.graphics.getHeight());
         touchPos = new Vector2();
+        currentSkinMode = SkinMode.CHINESE; // Initialize skin mode
         this.setScreen(new MainMenuScreen(this));
     }
 

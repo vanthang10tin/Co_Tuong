@@ -27,6 +27,11 @@ public class MainMenuScreen implements Screen {
 
         game.batch.begin();
         game.batch.draw(game.texture, 0, 0, game.viewport.getWorldWidth(), game.viewport.getWorldHeight());
+        
+        // Draw skin mode text
+        String skinText = "Skin: " + game.currentSkinMode.toString();
+        game.font.draw(game.batch, skinText, 1, 3);
+        
         game.batch.end();
 
         if (Gdx.input.justTouched()) {
@@ -37,6 +42,11 @@ public class MainMenuScreen implements Screen {
                 game.setScreen(new GameScreen(game, GameMode.PVE));
             else if (y >= 4)
                 game.setScreen(new GameScreen(game, GameMode.PVP));
+            else if (y >= 2 && y < 4) {
+                // Toggle skin mode
+                game.currentSkinMode = (game.currentSkinMode == SkinMode.CHINESE) ? 
+                    SkinMode.ENGLISH : SkinMode.CHINESE;
+            }
             dispose();
         }
 
