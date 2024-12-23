@@ -8,7 +8,8 @@
     <string name="queen">queen</string>
 
     <!--main activity-->
-    <string name="game_start_button" translatable="false">Start Game</string>
+    <string name="VSAI_button" translatable="false">Start Game</string>
+    <string name="VSPlayer_button" translatable="false">Start Game</string>
     <string name="history_button" translatable="false">History</string>
     <string name="about_button" translatable="false">About</string>
 

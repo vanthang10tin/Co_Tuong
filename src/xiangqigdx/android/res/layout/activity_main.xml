@@ -38,21 +38,31 @@
             android:textSize="40sp" />
 
         <Button
-            android:id="@+id/start_game_button"
+            android:id="@+id/VSAI_button"
             style="@style/mainButtonStyle"
-            android:text="@string/game_start_button"
+            android:text="Play with AI"
+            android:onClick="OnClickvsAI"
+            android:gravity="center" />
+
+        <Button
+            android:id="@+id/VSPlayer_button"
+            style="@style/mainButtonStyle"
+            android:text="Play with player"
+            android:onClick="OnClickvsPlayer"
             android:gravity="center" />
 
         <Button
             android:id="@+id/settings_button"
             style="@style/mainButtonStyle"
             android:text="@string/history_button"
+            android:onClick="OnClickHistory"
             android:gravity="center" />
 
         <Button
             android:id="@+id/about_button"
             style="@style/mainButtonStyle"
             android:text="@string/about_button"
+            android:onClick="OnClickAbout"
             android:gravity="center" />
 
     </LinearLayout>
