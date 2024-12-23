@@ -2,10 +2,7 @@ package se.xiangqigdx;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.ScreenUtils;
 
 public class MainMenuScreen implements Screen {
 
@@ -37,9 +34,9 @@ public class MainMenuScreen implements Screen {
             game.viewport.unproject(game.touchPos);
             int x = (int) game.touchPos.x, y = (int) game.touchPos.y;
             if (y >= 6 )
-                game.setScreen(new VSAIScreen(game));
+                game.setScreen(new GameScreen(game, GameMode.PVE));
             else if (y >= 4)
-                game.setScreen(new VSPlayerScreen(game));
+                game.setScreen(new GameScreen(game, GameMode.PVP));
             dispose();
         }
 

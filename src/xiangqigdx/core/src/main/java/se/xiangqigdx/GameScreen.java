@@ -6,16 +6,16 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 import java.util.ArrayList;
 
-public class VSPlayerScreen implements Screen{
-    final Main game;
+public class GameScreen implements Screen {
+    Main game;
 
     private SpriteBatch batch;
     private Texture boardTexture;
@@ -34,28 +34,11 @@ public class VSPlayerScreen implements Screen{
     private Piece selectedPiece;
     private Side currentPlayer = Side.RED;  // Red goes first
     private BitmapFont font;
+    private GameMode gameMode;
 
-    // Add after other constants
-    public enum SkinMode {
-        CHINESE("Chinese"),
-        WESTERN("English");
-        
-        private final String prefix;
-        
-        SkinMode(String prefix) {
-            this.prefix = prefix;
-        }
-        
-        public String getPrefix() {
-            return prefix;
-        }
-    }
-
-    // Add with other class variables
-    private SkinMode currentSkin = SkinMode.CHINESE;
-
-    public VSPlayerScreen(final Main game){
+    public GameScreen(Main game){
         this.game = game;
+
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         viewport = new FitViewport(BOARD_WIDTH, BOARD_HEIGHT, camera);
@@ -64,8 +47,38 @@ public class VSPlayerScreen implements Screen{
         boardTexture = new Texture("xiangqi_gmchess_wood.png");
         loadPieceTextures();
         hintTexture = new Texture("validMovesHint.png");
-        // Initialize game board
-        board = new Board();
+
+        // Set the game mode - you can modify this to be set by user input
+        gameMode = GameMode.PVE; // or GameMode.PVP
+
+        // Initialize game board with selected mode
+        board = new Board(gameMode);
+        validMovesPositions = new ArrayList<>();
+
+        touchPos = new Vector2();
+        selectedPiece = null;
+
+        font = new BitmapFont();
+        font.getData().setScale(4); // Make text larger
+    }
+
+    public GameScreen(Main game, GameMode gameMode){
+        this.game = game;
+
+        batch = new SpriteBatch();
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(BOARD_WIDTH, BOARD_HEIGHT, camera);
+
+        // Load textures
+        boardTexture = new Texture("xiangqi_gmchess_wood.png");
+        loadPieceTextures();
+        hintTexture = new Texture("validMovesHint.png");
+
+        // Set the game mode - you can modify this to be set by user input
+        this.gameMode = gameMode;// or GameMode.PVP
+
+        // Initialize game board with selected mode
+        board = new Board(gameMode);
         validMovesPositions = new ArrayList<>();
 
         touchPos = new Vector2();
@@ -79,20 +92,8 @@ public class VSPlayerScreen implements Screen{
         pieceTextures = new Texture[14]; // 7 piece types * 2 sides
         String[] types = {"King", "Advisor", "Elephant", "Horse", "Rook", "Cannon", "Pawn"};
         for (int i = 0; i < types.length; i++) {
-            pieceTextures[i] = new Texture("Pieces/" + currentSkin.getPrefix() + "-" + types[i] + "-Red.png");
-            pieceTextures[i + 7] = new Texture("Pieces/" + currentSkin.getPrefix() + "-" + types[i] + "-Black.png");
-        }
-    }
-
-    // Add new method to change skins
-    public void changeSkin(SkinMode newSkin) {
-        if (currentSkin != newSkin) {
-            // Dispose old textures
-            for (Texture texture : pieceTextures) {
-                texture.dispose();
-            }
-            currentSkin = newSkin;
-            loadPieceTextures();
+            pieceTextures[i] = new Texture("Pieces/Chinese-" + types[i] + "-Red.png");
+            pieceTextures[i + 7] = new Texture("Pieces/Chinese-" + types[i] + "-Black.png");
         }
     }
 
@@ -190,7 +191,6 @@ public class VSPlayerScreen implements Screen{
     public void show() {
 
     }
-
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
@@ -222,16 +222,6 @@ public class VSPlayerScreen implements Screen{
     }
 
     public void input(){
-        // Handle skin change with 'S' key
-        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)) {
-            if (currentSkin == SkinMode.CHINESE) {
-                changeSkin(SkinMode.WESTERN);
-            } else {
-                changeSkin(SkinMode.CHINESE);
-            }
-        }
-
-        // ...existing input code for piece movement...
         if (!board.isGameOver() && Gdx.input.justTouched()) {
             touchPos.set(Gdx.input.getX(), Gdx.input.getY());
             viewport.unproject(touchPos);
