@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.util.ArrayList;
 
@@ -47,6 +48,14 @@ public class GameScreen implements Screen {
     private float BACK_BUTTON_X;
     private float BACK_BUTTON_Y;
     private Texture backButtonTexture;  // Add this field
+    private Position lastMoveFrom;
+    private Position lastMoveTo;
+    private static final Color LAST_MOVE_COLOR = new Color(0.2f, 0.4f, 0.8f, 0.7f); // Soft blue
+    private static final float HIGHLIGHT_SCALE = 1.05f; // Highlight circle is 20% bigger than pieces
+    private static final float CIRCLE_LINE_WIDTH = 2f; // Slightly thicker line for better visibility
+    private ShapeRenderer shapeRenderer;
+    private static final Color CHECK_COLOR = new Color(0.9f, 0.2f, 0.2f, 0.8f); // Bright red
+    private static final float CHECK_CIRCLE_WIDTH = 3f; // Slightly thicker than move circles
 
     public GameScreen(Main game){
         this.game = game;
@@ -78,6 +87,8 @@ public class GameScreen implements Screen {
 
         font = new BitmapFont();
         font.getData().setScale(4); // Make text larger
+
+        shapeRenderer = new ShapeRenderer();
     }
 
     public GameScreen(Main game, GameMode gameMode){
@@ -110,6 +121,8 @@ public class GameScreen implements Screen {
 
         font = new BitmapFont();
         font.getData().setScale(4); // Make text larger
+
+        shapeRenderer = new ShapeRenderer();
     }
 
     private void loadPieceTextures() {
@@ -199,6 +212,64 @@ public class GameScreen implements Screen {
         
         // Draw board with current dimensions
         batch.draw(boardTexture, boardX, boardY, boardWidth, boardHeight);
+
+        // Draw check indicator if general is in check
+        if (board.isInCheck(board.getCurrentPlayer())) {
+            batch.end();
+            
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            shapeRenderer.setProjectionMatrix(camera.combined);
+            Gdx.gl.glLineWidth(CHECK_CIRCLE_WIDTH);
+            
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            shapeRenderer.setColor(CHECK_COLOR);
+            
+            // Find the general
+            for (Piece piece : board.pieces) {
+                if (piece.type == Type.GENERAL && piece.side == board.getCurrentPlayer()) {
+                    float x = boardX + piece.pos.x * cellSize + cellSize / 2;
+                    float y = boardY + (9 - piece.pos.y) * cellSize + cellSize / 2;
+                    shapeRenderer.circle(x, y, pieceSize * HIGHLIGHT_SCALE / 2);
+                    break;
+                }
+            }
+            
+            shapeRenderer.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+            
+            batch.begin();
+        }
+
+        // Draw last move highlights using unfilled circles
+        if (lastMoveFrom != null && lastMoveTo != null) {
+            batch.end();
+            
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            shapeRenderer.setProjectionMatrix(camera.combined);
+            
+            // Set line width for circles
+            Gdx.gl.glLineWidth(CIRCLE_LINE_WIDTH);
+            
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            shapeRenderer.setColor(LAST_MOVE_COLOR);
+            
+            float radius = pieceSize * HIGHLIGHT_SCALE / 2;
+            
+            // Draw source circle outline
+            float fromX = boardX + lastMoveFrom.x * cellSize + cellSize / 2;
+            float fromY = boardY + (9 - lastMoveFrom.y) * cellSize + cellSize / 2;
+            shapeRenderer.circle(fromX, fromY, radius);
+            
+            // Draw destination circle outline
+            float toX = boardX + lastMoveTo.x * cellSize + cellSize / 2;
+            float toY = boardY + (9 - lastMoveTo.y) * cellSize + cellSize / 2;
+            shapeRenderer.circle(toX, toY, radius);
+            
+            shapeRenderer.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+            
+            batch.begin();
+        }
 
         // Draw pieces with calculated positions
         for (Piece piece : board.pieces) {
@@ -310,6 +381,7 @@ public class GameScreen implements Screen {
         }
         font.dispose();
         backButtonTexture.dispose();  // Add this line
+        shapeRenderer.dispose();
     }
 
     public void input(){
@@ -345,6 +417,10 @@ public class GameScreen implements Screen {
                 } else {
                     Position newPos = new Position(x, y);
                     if (validMovesPositions.contains(newPos)) {
+                        // Store last move before executing it
+                        lastMoveFrom = new Position(selectedPiece.pos.x, selectedPiece.pos.y);
+                        lastMoveTo = new Position(x, y);
+                        
                         board.movePiece(selectedPiece, newPos);
                         currentPlayer = board.getCurrentPlayer(); // Update current player from board
                     }
