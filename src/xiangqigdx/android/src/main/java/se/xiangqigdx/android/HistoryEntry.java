@@ -6,13 +6,14 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import se.xiangqigdx.Board;
+import se.xiangqigdx.Move;
+import se.xiangqigdx.Piece;
 
 public class HistoryEntry implements Serializable {
-    public Board.Move move;
-    public ArrayList<Board.Piece> boardState;
+    public Move move;
+    public ArrayList<Piece> boardState;
 
-    public HistoryEntry(Board.Move move, ArrayList<Board.Piece> boardState) {
+    public HistoryEntry(Move move, ArrayList<Piece> boardState) {
         this.move = move;
         this.boardState = boardState;
     }
