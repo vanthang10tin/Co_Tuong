@@ -43,7 +43,7 @@ public class GameScreen implements Screen {
     private SkinMode skinMode;
     private static final float SCREEN_WIDTH = 1100;  // Wider than board
     private static final float SCREEN_HEIGHT = 1200; // Taller than board
-    private static final float BACK_BUTTON_SIZE = 40;
+    private static final float BACK_BUTTON_SIZE = 100;
     private static final float BACK_BUTTON_PADDING = 20;
     private float BACK_BUTTON_X;
     private float BACK_BUTTON_Y;
@@ -69,7 +69,7 @@ public class GameScreen implements Screen {
 
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
-        viewport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
+        viewport = new FitViewport(1100, 1200, camera);
         camera.position.set(viewport.getWorldWidth() / 2, viewport.getWorldHeight() / 2, 0);
 
         // Initialize dimensions
@@ -176,9 +176,9 @@ public class GameScreen implements Screen {
         // Calculate board size to fit screen with padding
         float maxBoardWidth = screenWidth - (BOARD_PADDING * 2);
         float maxBoardHeight = screenHeight - (BOARD_PADDING * 2);
-        
+
         float aspectRatio = BOARD_ASPECT_RATIO; // width/height
-        
+
         if (maxBoardWidth / maxBoardHeight > aspectRatio) {
             // Height is the limiting factor
             boardHeight = maxBoardHeight;
@@ -193,11 +193,11 @@ public class GameScreen implements Screen {
         cellSize = boardWidth / 9;
         pieceSize = cellSize * 0.9f;
         validMoveHintSize = cellSize * 0.5f;
-        
+
         // Center the board
         boardX = (screenWidth - boardWidth) / 2;
         boardY = (screenHeight - boardHeight) / 2;
-        
+
         // Update back button position
         BACK_BUTTON_X = BOARD_PADDING / 2;
         BACK_BUTTON_Y = screenHeight - BACK_BUTTON_SIZE - BOARD_PADDING / 2;
@@ -227,7 +227,7 @@ public class GameScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
-        
+
         // Draw background
         batch.setColor(BACKGROUND_COLOR);
         batch.draw(backgroundTexture, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
@@ -239,14 +239,14 @@ public class GameScreen implements Screen {
         // Draw check indicator if general is in check
         if (board.isInCheck(board.getCurrentPlayer())) {
             batch.end();
-            
+
             Gdx.gl.glEnable(GL20.GL_BLEND);
             shapeRenderer.setProjectionMatrix(camera.combined);
             Gdx.gl.glLineWidth(CHECK_CIRCLE_WIDTH);
-            
+
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
             shapeRenderer.setColor(CHECK_COLOR);
-            
+
             // Find the general
             for (Piece piece : board.pieces) {
                 if (piece.type == Type.GENERAL && piece.side == board.getCurrentPlayer()) {
@@ -256,41 +256,41 @@ public class GameScreen implements Screen {
                     break;
                 }
             }
-            
+
             shapeRenderer.end();
             Gdx.gl.glDisable(GL20.GL_BLEND);
-            
+
             batch.begin();
         }
 
         // Draw last move highlights using unfilled circles
         if (lastMoveFrom != null && lastMoveTo != null) {
             batch.end();
-            
+
             Gdx.gl.glEnable(GL20.GL_BLEND);
             shapeRenderer.setProjectionMatrix(camera.combined);
-            
+
             // Set line width for circles
             Gdx.gl.glLineWidth(CIRCLE_LINE_WIDTH);
-            
+
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
             shapeRenderer.setColor(LAST_MOVE_COLOR);
-            
+
             float radius = pieceSize * HIGHLIGHT_SCALE / 2;
-            
+
             // Draw source circle outline
             float fromX = boardX + lastMoveFrom.x * cellSize + cellSize / 2;
             float fromY = boardY + (9 - lastMoveFrom.y) * cellSize + cellSize / 2;
             shapeRenderer.circle(fromX, fromY, radius);
-            
+
             // Draw destination circle outline
             float toX = boardX + lastMoveTo.x * cellSize + cellSize / 2;
             float toY = boardY + (9 - lastMoveTo.y) * cellSize + cellSize / 2;
             shapeRenderer.circle(toX, toY, radius);
-            
+
             shapeRenderer.end();
             Gdx.gl.glDisable(GL20.GL_BLEND);
-            
+
             batch.begin();
         }
 
@@ -448,10 +448,10 @@ public class GameScreen implements Screen {
                             // Store last move before executing it
                             lastMoveFrom = new Position(selectedPiece.pos.x, selectedPiece.pos.y);
                             lastMoveTo = new Position(x, y);
-                            
+
                             board.movePiece(selectedPiece, newPos);
                             currentPlayer = board.getCurrentPlayer();
-                            
+
                             // If in PVE mode and it's AI's turn, set waiting flag
                             if (gameMode == GameMode.PVE && currentPlayer == board.player2Side) {
                                 waitingForAI = true;

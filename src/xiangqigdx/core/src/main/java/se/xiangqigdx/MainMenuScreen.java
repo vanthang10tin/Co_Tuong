@@ -35,14 +35,16 @@ public class MainMenuScreen implements Screen {
             game.touchPos.set(Gdx.input.getX(), Gdx.input.getY());
             game.viewport.unproject(game.touchPos);
             int x = (int) game.touchPos.x, y = (int) game.touchPos.y;
-            if (y >= 6 )
-                game.setScreen(new GameScreen(game, GameMode.PVE));
-            else if (y >= 4)
-                game.setScreen(new GameScreen(game, GameMode.PVP));
-            else if (y < 2) {
-                // Toggle skin mode
-                game.currentSkinMode = (game.currentSkinMode == SkinMode.CHINESE) ?
-                    SkinMode.ENGLISH : SkinMode.CHINESE;
+            if (!(y > 8 || y < 0)){
+                if (y >= 6)
+                    game.setScreen(new GameScreen(game, GameMode.PVE));
+                else if (y >= 4)
+                    game.setScreen(new GameScreen(game, GameMode.PVP));
+                else if (y < 2) {
+                    // Toggle skin mode
+                    game.currentSkinMode = (game.currentSkinMode == SkinMode.CHINESE) ?
+                        SkinMode.ENGLISH : SkinMode.CHINESE;
+                }
             }
             dispose();
         }
