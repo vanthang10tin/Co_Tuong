@@ -28,8 +28,6 @@ public class MainMenuScreen implements Screen {
         game.batch.begin();
         game.batch.draw(game.texture, 0, 0, game.viewport.getWorldWidth(), game.viewport.getWorldHeight());
         // Draw skin mode text
-        String skinText = "Skin: " + game.currentSkinMode.toString();
-        game.font.draw(game.batch, skinText, 1, 3);
         game.batch.draw(game.currentSkinMode == SkinMode.CHINESE ? game.chinesePieceTexture : game.englishPieceTexture, 5.5F, 0.25F, 1.5F, 1.5F);
         game.batch.end();
 
