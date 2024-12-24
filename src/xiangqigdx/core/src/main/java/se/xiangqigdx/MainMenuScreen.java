@@ -28,22 +28,24 @@ public class MainMenuScreen implements Screen {
         game.batch.begin();
         game.batch.draw(game.texture, 0, 0, game.viewport.getWorldWidth(), game.viewport.getWorldHeight());
         // Draw skin mode text
-        game.batch.draw(game.currentSkinMode == SkinMode.CHINESE ? game.chinesePieceTexture : game.englishPieceTexture, 5.5F, 0.25F, 1.5F, 1.5F);
+        game.batch.draw(game.currentSkinMode == SkinMode.CHINESE ? game.chinesePieceTexture : game.englishPieceTexture, 763, 1920-1681, 898-763, 898-763);
         game.batch.end();
 
         if (Gdx.input.justTouched()) {
             game.touchPos.set(Gdx.input.getX(), Gdx.input.getY());
             game.viewport.unproject(game.touchPos);
             int x = (int) game.touchPos.x, y = (int) game.touchPos.y;
-            if (!(y > 8 || y < 0)){
-                if (y >= 6)
+            if (y <= 1920-829 && y > 1920-1729 && 90 < x && x < 990){
+                if (y >= 1920-1054)
                     game.setScreen(new GameScreen(game, GameMode.PVE));
-                else if (y >= 4)
+                else if (y >= 1920-1279)
                     game.setScreen(new GameScreen(game, GameMode.PVP));
-                else if (y < 2) {
+                else if (y < 1920-1504) {
                     // Toggle skin mode
                     game.currentSkinMode = (game.currentSkinMode == SkinMode.CHINESE) ?
                         SkinMode.ENGLISH : SkinMode.CHINESE;
+                    game.skinPreferences.putString("skinMode", game.currentSkinMode == SkinMode.CHINESE ? "CHINESE": "ENGLISH");
+                    game.skinPreferences.flush();
                 }
             }
             dispose();

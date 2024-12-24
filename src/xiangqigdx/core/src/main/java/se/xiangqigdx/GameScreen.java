@@ -51,7 +51,7 @@ public class GameScreen implements Screen {
     private Position lastMoveTo;
     private static final Color LAST_MOVE_COLOR = new Color(0.2f, 0.4f, 0.8f, 0.7f); // Soft blue
     private static final float HIGHLIGHT_SCALE = 1.05f; // Highlight ciracle is 20% bigger than pieces
-    private static final float CIRCLE_LINE_WIDTH = 2f; // Slightly thicker line for better visibility
+    private static final float CIRCLE_LINE_WIDTH = 10f; // Slightly thicker line for better visibility
     private ShapeRenderer shapeRenderer;
     private static final Color CHECK_COLOR = new Color(0.9f, 0.2f, 0.2f, 0.8f); // Bright red
     private static final float CHECK_CIRCLE_WIDTH = 3f; // Slightly thicker than move circles
