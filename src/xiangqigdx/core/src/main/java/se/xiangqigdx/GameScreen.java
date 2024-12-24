@@ -43,6 +43,7 @@ public class GameScreen implements Screen {
     private static final float SCREEN_WIDTH = 1100;  // Wider than board
     private static final float SCREEN_HEIGHT = 1200; // Taller than board
     private static final float BACK_BUTTON_SIZE = 100;
+    private static final float BACK_BUTTON_PADDING = 20;
     private float BACK_BUTTON_X;
     private float BACK_BUTTON_Y;
     private Texture backButtonTexture;  // Add this field
@@ -61,11 +62,17 @@ public class GameScreen implements Screen {
     private float aiDelay = 0.5f; // Half second delay before AI moves
     private float aiTimer = 0;
     private BitmapFont gameOverFont;
-    private boolean gameSaved = false;
-
+    private int redWins = 0;
+    private int blackWins = 0;
+    private BitmapFont scoreFont;
 
     private Texture undoButtonTexture;
     private float UNDO_BUTTON_X, UNDO_BUTTON_Y;
+    private Texture rematchButtonTexture;
+    private float REMATCH_BUTTON_SIZE = 200;
+    private float rematchButtonX, rematchButtonY;
+    private boolean scoreUpdated = false; // Add this field
+
     public GameScreen(){
         this.game = game;
 
@@ -88,6 +95,7 @@ public class GameScreen implements Screen {
         hintTexture = new Texture("validMovesHint.png");
         backButtonTexture = new Texture("back_arrow.png");  // Add after other texture loading
         undoButtonTexture = new Texture("undo.png");
+        rematchButtonTexture = new Texture("rematch.png");
         // Set the game mode
         gameMode = GameMode.PVE; // or GameMode.PVP
 
@@ -105,6 +113,11 @@ public class GameScreen implements Screen {
         gameOverFont = new BitmapFont();
         gameOverFont.getData().setScale(8); // Larger scale for game over text
         gameOverFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        // Initialize score font
+        scoreFont = new BitmapFont();
+        scoreFont.getData().setScale(3);
+        scoreFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         shapeRenderer = new ShapeRenderer();
     }
@@ -131,6 +144,7 @@ public class GameScreen implements Screen {
         hintTexture = new Texture("validMovesHint.png");
         backButtonTexture = new Texture("back_arrow.png");  // Add after other texture loading
         undoButtonTexture = new Texture("undo.png");
+        rematchButtonTexture = new Texture("rematch.png");
         // Set the game mode - you can modify this to be set by user input
         this.gameMode = gameMode;// or GameMode.PVP
 
@@ -148,6 +162,11 @@ public class GameScreen implements Screen {
         gameOverFont = new BitmapFont();
         gameOverFont.getData().setScale(8); // Larger scale for game over text
         gameOverFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        // Initialize score font
+        scoreFont = new BitmapFont();
+        scoreFont.getData().setScale(3);
+        scoreFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         shapeRenderer = new ShapeRenderer();
     }
@@ -222,6 +241,10 @@ public class GameScreen implements Screen {
 
         UNDO_BUTTON_X = BACK_BUTTON_X + BACK_BUTTON_SIZE + 20;
         UNDO_BUTTON_Y = BACK_BUTTON_Y;
+
+        // Calculate rematch button position (centered on board)
+        rematchButtonX = boardX + (boardWidth - REMATCH_BUTTON_SIZE) / 2;
+        rematchButtonY = boardY + boardHeight * 0.3f; // Position it below game over text
     }
 
     @Override
@@ -339,6 +362,16 @@ public class GameScreen implements Screen {
 
         // Draw game result if game is over
         if (board.isGameOver()) {
+            // Update scores immediately when game ends
+            if (!scoreUpdated && !board.isStalemate()) {
+                if (board.getWinner() == Side.RED) {
+                    redWins++;
+                } else if (board.getWinner() == Side.BLACK) {
+                    blackWins++;
+                }
+                scoreUpdated = true;
+            }
+
             String resultText;
             if (board.isStalemate()) {
                 resultText = "Stalemate!";
@@ -371,6 +404,25 @@ public class GameScreen implements Screen {
             }
             gameOverFont.setColor(textColor);
             gameOverFont.draw(batch, resultText, textX, textY);
+
+            // Draw rematch button
+            batch.setColor(1, 1, 1, 0.9f);
+            batch.draw(rematchButtonTexture, rematchButtonX, rematchButtonY,
+                      REMATCH_BUTTON_SIZE, REMATCH_BUTTON_SIZE);
+            batch.setColor(Color.WHITE);
+
+            // Draw score
+            String scoreText = redWins + "-" + blackWins;
+            com.badlogic.gdx.graphics.g2d.GlyphLayout scoreLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+            scoreLayout.setText(scoreFont, scoreText);
+            float scoreX = rematchButtonX + REMATCH_BUTTON_SIZE/2 - scoreLayout.width/2;
+            float scoreY = rematchButtonY - scoreLayout.height - 10;
+
+            // Draw score text with shadow
+            scoreFont.setColor(0, 0, 0, 0.5f);
+            scoreFont.draw(batch, scoreText, scoreX + 2, scoreY - 2);
+            scoreFont.setColor(1, 1, 1, 1);
+            scoreFont.draw(batch, scoreText, scoreX, scoreY);
         }
 
         // Draw back button with larger size and more opacity
@@ -380,13 +432,37 @@ public class GameScreen implements Screen {
         // Draw undo button
         batch.draw(undoButtonTexture, UNDO_BUTTON_X, UNDO_BUTTON_Y, BACK_BUTTON_SIZE, BACK_BUTTON_SIZE);
         batch.setColor(Color.WHITE);
+
+        // Draw score
+        // Draw Red wins on the right side
+        String redScoreText = String.valueOf(redWins);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout redScoreLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+        redScoreLayout.setText(scoreFont, redScoreText);
+        float redScoreX = boardX + boardWidth - redScoreLayout.width - 20;  // 20 pixels from right edge
+        float redScoreY = boardY + boardHeight - 20;  // 20 pixels from top
+
+        // Draw Black wins on the left side
+        String blackScoreText = String.valueOf(blackWins);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout blackScoreLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+        blackScoreLayout.setText(scoreFont, blackScoreText);
+        float blackScoreX = boardX + 20;  // 20 pixels from left edge
+        float blackScoreY = boardY + boardHeight - 20;  // 20 pixels from top
+
+        // Draw scores with shadows
+        // Black score
+        scoreFont.setColor(0, 0, 0, 0.5f);
+        scoreFont.draw(batch, blackScoreText, blackScoreX + 2, blackScoreY - 2);
+        scoreFont.setColor(0.2f, 0.2f, 0.2f, 1);  // Dark gray for black score
+        scoreFont.draw(batch, blackScoreText, blackScoreX, blackScoreY);
+
+        // Red score
+        scoreFont.setColor(0, 0, 0, 0.5f);
+        scoreFont.draw(batch, redScoreText, redScoreX + 2, redScoreY - 2);
+        scoreFont.setColor(1, 0.2f, 0.2f, 1);  // Red for red score
+        scoreFont.draw(batch, redScoreText, redScoreX, redScoreY);
+
         batch.end();
         input();
-
-        // After game over check
-        if (board.isGameOver()) {
-            saveGameIfOver();
-        }
     }
 
     private Texture getPieceTexture(Piece piece) {
@@ -448,6 +524,8 @@ public class GameScreen implements Screen {
             backgroundTexture.dispose();
             backgroundTexture = null;
         }
+        rematchButtonTexture.dispose();
+        scoreFont.dispose();
     }
 
     public void input(){
@@ -485,6 +563,26 @@ public class GameScreen implements Screen {
                 selectedPiece = null;
                 validMovesPositions.clear();
 
+            }
+
+            // Check rematch button if game is over
+            if (board.isGameOver() &&
+                touchPos.x >= rematchButtonX &&
+                touchPos.x <= rematchButtonX + REMATCH_BUTTON_SIZE &&
+                touchPos.y >= rematchButtonY &&
+                touchPos.y <= rematchButtonY + REMATCH_BUTTON_SIZE) {
+
+                // Start new game with same settings
+                board = new Board(gameMode);
+                currentPlayer = Side.RED;
+                selectedPiece = null;
+                validMovesPositions.clear();
+                lastMoveFrom = null;
+                lastMoveTo = null;
+                waitingForAI = false;
+                aiTimer = 0;
+                scoreUpdated = false;  // Reset the flag for next game
+                return;
             }
 
             // Allow moves if:
@@ -527,37 +625,6 @@ public class GameScreen implements Screen {
                         validMovesPositions.clear();
                     }
                 }
-            }
-        }
-    }
-
-    private void saveGameIfOver() {
-        if (board.isGameOver() && !gameSaved) {
-            GameRecord record = new GameRecord();
-            // Use consistent date format
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            record.date = sdf.format(new java.util.Date());
-            record.gameMode = gameMode;
-            record.winner = board.getWinner();
-            record.isStalemate = board.isStalemate();
-            record.player1Side = board.player1Side;
-            
-            // Build moves string
-            StringBuilder moves = new StringBuilder();
-            for (Move move : board.moveStack) {
-                if (move != null) {
-                    moves.append(move.toString()).append(";");
-                }
-            }
-            record.moves = moves.toString();
-            
-            // Save and confirm it's saved
-            try {
-                game.gameDatabase.saveGame(record);
-                gameSaved = true;
-                Gdx.app.log("GameScreen", "Game saved successfully");
-            } catch (Exception e) {
-                Gdx.app.error("GameScreen", "Failed to save game", e);
             }
         }
     }

@@ -70,7 +70,8 @@ public class Board {
     }
 
 
-    public void setPieces() {
+    // Rename setPieces to setupPieces
+    private void setupPieces() {
         pieces = new ArrayList<Piece>();
         pieces.add(new Piece(Side.BLACK, Type.CHARIOT, 0, 0));
         pieces.add(new Piece(Side.BLACK, Type.CHARIOT, 8, 0));
@@ -103,7 +104,7 @@ public class Board {
 
     public Board(GameMode mode) {
         gameMode = mode;
-        setPieces();
+        setupPieces();
         selectedPiece = null;
         currentPlayer = Side.RED;
         player1Side = Side.RED;
@@ -393,5 +394,65 @@ public class Board {
 
     public void switchPlayer() {
         currentPlayer = (currentPlayer == Side.BLACK) ? Side.RED : Side.BLACK;
+    }
+
+    public void setupBoard(Side player1Side) {
+        pieces.clear();
+        this.player1Side = player1Side;
+        this.player2Side = (player1Side == Side.RED) ? Side.BLACK : Side.RED;
+        
+        // Setup pieces based on player1's side
+        if (player1Side == Side.RED) {
+            // Normal setup - player1 is RED at bottom
+            setupPieces();
+        } else {
+            // Reversed setup - player1 is BLACK at bottom
+            setupReversedPieces();
+        }
+    }
+
+    private void addPiece(Piece piece) {
+        if (pieces == null) {
+            pieces = new ArrayList<>();
+        }
+        pieces.add(piece);
+    }
+
+    private void setupReversedPieces() {
+        // Add BLACK pieces at bottom (player1)
+        addPiece(new Piece(Side.BLACK, Type.CHARIOT, new Position(0, 0)));
+        addPiece(new Piece(Side.BLACK, Type.HORSE, new Position(1, 0)));
+        addPiece(new Piece(Side.BLACK, Type.ELEPHANT, new Position(2, 0)));
+        addPiece(new Piece(Side.BLACK, Type.ADVISOR, new Position(3, 0)));
+        addPiece(new Piece(Side.BLACK, Type.GENERAL, new Position(4, 0)));
+        addPiece(new Piece(Side.BLACK, Type.ADVISOR, new Position(5, 0)));
+        addPiece(new Piece(Side.BLACK, Type.ELEPHANT, new Position(6, 0)));
+        addPiece(new Piece(Side.BLACK, Type.HORSE, new Position(7, 0)));
+        addPiece(new Piece(Side.BLACK, Type.CHARIOT, new Position(8, 0)));
+        addPiece(new Piece(Side.BLACK, Type.CANNON, new Position(1, 2)));
+        addPiece(new Piece(Side.BLACK, Type.CANNON, new Position(7, 2)));
+        addPiece(new Piece(Side.BLACK, Type.SOLDIER, new Position(0, 3)));
+        addPiece(new Piece(Side.BLACK, Type.SOLDIER, new Position(2, 3)));
+        addPiece(new Piece(Side.BLACK, Type.SOLDIER, new Position(4, 3)));
+        addPiece(new Piece(Side.BLACK, Type.SOLDIER, new Position(6, 3)));
+        addPiece(new Piece(Side.BLACK, Type.SOLDIER, new Position(8, 3)));
+
+        // Add RED pieces at top (player2)
+        addPiece(new Piece(Side.RED, Type.CHARIOT, new Position(0, 9)));
+        addPiece(new Piece(Side.RED, Type.HORSE, new Position(1, 9)));
+        addPiece(new Piece(Side.RED, Type.ELEPHANT, new Position(2, 9)));
+        addPiece(new Piece(Side.RED, Type.ADVISOR, new Position(3, 9)));
+        addPiece(new Piece(Side.RED, Type.GENERAL, new Position(4, 9)));
+        addPiece(new Piece(Side.RED, Type.ADVISOR, new Position(5, 9)));
+        addPiece(new Piece(Side.RED, Type.ELEPHANT, new Position(6, 9)));
+        addPiece(new Piece(Side.RED, Type.HORSE, new Position(7, 9)));
+        addPiece(new Piece(Side.RED, Type.CHARIOT, new Position(8, 9)));
+        addPiece(new Piece(Side.RED, Type.CANNON, new Position(1, 7)));
+        addPiece(new Piece(Side.RED, Type.CANNON, new Position(7, 7)));
+        addPiece(new Piece(Side.RED, Type.SOLDIER, new Position(0, 6)));
+        addPiece(new Piece(Side.RED, Type.SOLDIER, new Position(2, 6)));
+        addPiece(new Piece(Side.RED, Type.SOLDIER, new Position(4, 6)));
+        addPiece(new Piece(Side.RED, Type.SOLDIER, new Position(6, 6)));
+        addPiece(new Piece(Side.RED, Type.SOLDIER, new Position(8, 6)));
     }
 }
