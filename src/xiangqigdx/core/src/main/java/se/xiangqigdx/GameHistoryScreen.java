@@ -19,13 +19,16 @@ public class GameHistoryScreen implements Screen {
     private static final float SCROLL_SPEED = 500f;
     private BitmapFont titleFont;
     private BitmapFont historyFont;
+    private boolean isLoading = true;
+    private String loadingText = "Loading...";
+    private float loadingDots = 0;
+    private static final float DOT_INTERVAL = 0.5f;
 
     public GameHistoryScreen(Main game) {
         this.game = game;
         camera = new OrthographicCamera();
         viewport = new FitViewport(1080, 1920, camera);
         camera.position.set(viewport.getWorldWidth() / 2, viewport.getWorldHeight() / 2, 0);
-        games = game.gameDatabase.getGameHistory();
 
         // Create larger fonts
         titleFont = new BitmapFont();
@@ -33,12 +36,19 @@ public class GameHistoryScreen implements Screen {
 
         historyFont = new BitmapFont();
         historyFont.getData().setScale(2.5f); // Medium font for history entries
+
+        // Start loading games in background
+        new Thread(() -> {
+            games = game.gameDatabase.getGameHistory();
+            isLoading = false;
+            Gdx.app.log("GameHistoryScreen", "Loaded " + games.size() + " games");
+        }).start();
     }
 
     @Override
     public void render(float delta) {
         // Handle scrolling
-        if (Gdx.input.isTouched()) {
+        if (Gdx.input.isTouched() && !isLoading) {
             scrollPosition += Gdx.input.getDeltaY() * SCROLL_SPEED * delta;
             // Limit scrolling
             scrollPosition = Math.min(Math.max(0, scrollPosition), 
@@ -51,27 +61,43 @@ public class GameHistoryScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
 
-        // Draw header with larger font
-        titleFont.draw(game.batch, "Game History", PADDING, viewport.getWorldHeight() - PADDING);
+        if (isLoading) {
+            // Show loading animation
+            loadingDots += delta;
+            String dots = ".".repeat((int)((loadingDots / DOT_INTERVAL) % 4));
+            titleFont.draw(game.batch, loadingText + dots, 
+                viewport.getWorldWidth()/2 - 100, viewport.getWorldHeight()/2);
+        } else {
+            // Draw header with larger font
+            String headerText = String.format("Game History");
+            titleFont.draw(game.batch, headerText, PADDING, viewport.getWorldHeight() - PADDING);
 
-        // Draw game records with medium font
-        float y = viewport.getWorldHeight() - PADDING - LINE_HEIGHT - scrollPosition;
-        for (GameRecord record : games) {
-            if (y + LINE_HEIGHT > 0 && y < viewport.getWorldHeight()) {
-                historyFont.draw(game.batch, record.toString(), PADDING, y);
+            // Draw game records with medium font
+            float y = viewport.getWorldHeight() - PADDING - LINE_HEIGHT - scrollPosition;
+            for (GameRecord record : games) {
+                if (y + LINE_HEIGHT > 0 && y < viewport.getWorldHeight()) {
+                    historyFont.draw(game.batch, record.toString(), PADDING, y);
+                }
+                y -= LINE_HEIGHT;
             }
-            y -= LINE_HEIGHT;
+
+            // Draw back button with medium font
+            historyFont.draw(game.batch, "Back", PADDING, PADDING * 2);
+
+            // Draw total games count with medium font
+            historyFont.draw(game.batch, "Total Games: " + games.size(), 
+                viewport.getWorldWidth() - 400, viewport.getWorldHeight() - PADDING);
         }
-
-        // Draw back button with medium font
-        historyFont.draw(game.batch, "Back", PADDING, PADDING * 2);
-
-        // Draw total games count with medium font
-        historyFont.draw(game.batch, "Total Games: " + games.size(), 
-            viewport.getWorldWidth() - 400, viewport.getWorldHeight() - PADDING);
 
         game.batch.end();
 
+        // Handle input only when loaded
+        if (!isLoading) {
+            handleInput();
+        }
+    }
+
+    private void handleInput() {
         // Handle back button
         if (Gdx.input.justTouched()) {
             game.touchPos.set(Gdx.input.getX(), Gdx.input.getY());
@@ -92,9 +118,14 @@ public class GameHistoryScreen implements Screen {
 
     @Override
     public void show() {
-        // Refresh game history when screen is shown
-        games = game.gameDatabase.getGameHistory();
-        scrollPosition = 0; // Reset scroll position
+        // Force refresh games list when screen is shown
+        isLoading = true;
+        new Thread(() -> {
+            games = game.gameDatabase.getGameHistory();
+            isLoading = false;
+            scrollPosition = 0;
+            Gdx.app.log("GameHistoryScreen", "Refreshed history, found " + games.size() + " games");
+        }).start();
     }
 
     @Override

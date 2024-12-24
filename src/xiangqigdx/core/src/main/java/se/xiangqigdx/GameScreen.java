@@ -72,6 +72,7 @@ public class GameScreen implements Screen {
     private float REMATCH_BUTTON_SIZE = 200;
     private float rematchButtonX, rematchButtonY;
     private boolean scoreUpdated = false; // Add this field
+    private boolean gameSaved = false; // Add this field
 
     public GameScreen(){
         this.game = game;
@@ -460,6 +461,21 @@ public class GameScreen implements Screen {
         scoreFont.draw(batch, redScoreText, redScoreX + 2, redScoreY - 2);
         scoreFont.setColor(1, 0.2f, 0.2f, 1);  // Red for red score
         scoreFont.draw(batch, redScoreText, redScoreX, redScoreY);
+
+        if (board.isGameOver() && !gameSaved) {
+            GameRecord record = new GameRecord();
+            record.date = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+            record.gameMode = gameMode;
+            record.winner = board.getWinner();
+            record.isStalemate = board.isStalemate();
+            record.player1Side = board.player1Side;
+            record.moves = board.moveStack.toString();
+            
+            Gdx.app.log("GameScreen", "Saving game...");
+            game.gameDatabase.saveGame(record);
+            gameSaved = true;
+            Gdx.app.log("GameScreen", "Game saved");
+        }
 
         batch.end();
         input();
