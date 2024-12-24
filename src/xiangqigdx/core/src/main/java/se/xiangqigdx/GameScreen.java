@@ -412,8 +412,8 @@ public class GameScreen implements Screen {
                       REMATCH_BUTTON_SIZE, REMATCH_BUTTON_SIZE);
             batch.setColor(Color.WHITE);
 
-            // Draw score
-            String scoreText = redWins + "-" + blackWins;
+            // Draw score with new format "RED % - % BLACK"
+            String scoreText = "RED " + redWins + " - " + blackWins + " BLACK";
             com.badlogic.gdx.graphics.g2d.GlyphLayout scoreLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
             scoreLayout.setText(scoreFont, scoreText);
             float scoreX = rematchButtonX + REMATCH_BUTTON_SIZE/2 - scoreLayout.width/2;
@@ -424,6 +424,8 @@ public class GameScreen implements Screen {
             scoreFont.draw(batch, scoreText, scoreX + 2, scoreY - 2);
             scoreFont.setColor(1, 1, 1, 1);
             scoreFont.draw(batch, scoreText, scoreX, scoreY);
+
+            // Remove the individual red/black score displays
         }
 
         // Draw back button with larger size and more opacity
@@ -433,34 +435,6 @@ public class GameScreen implements Screen {
         // Draw undo button
         batch.draw(undoButtonTexture, UNDO_BUTTON_X, UNDO_BUTTON_Y, BACK_BUTTON_SIZE, BACK_BUTTON_SIZE);
         batch.setColor(Color.WHITE);
-
-        // Draw score
-        // Draw Red wins on the right side
-        String redScoreText = String.valueOf(redWins);
-        com.badlogic.gdx.graphics.g2d.GlyphLayout redScoreLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
-        redScoreLayout.setText(scoreFont, redScoreText);
-        float redScoreX = boardX + boardWidth - redScoreLayout.width - 20;  // 20 pixels from right edge
-        float redScoreY = boardY + boardHeight - 20;  // 20 pixels from top
-
-        // Draw Black wins on the left side
-        String blackScoreText = String.valueOf(blackWins);
-        com.badlogic.gdx.graphics.g2d.GlyphLayout blackScoreLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
-        blackScoreLayout.setText(scoreFont, blackScoreText);
-        float blackScoreX = boardX + 20;  // 20 pixels from left edge
-        float blackScoreY = boardY + boardHeight - 20;  // 20 pixels from top
-
-        // Draw scores with shadows
-        // Black score
-        scoreFont.setColor(0, 0, 0, 0.5f);
-        scoreFont.draw(batch, blackScoreText, blackScoreX + 2, blackScoreY - 2);
-        scoreFont.setColor(0.2f, 0.2f, 0.2f, 1);  // Dark gray for black score
-        scoreFont.draw(batch, blackScoreText, blackScoreX, blackScoreY);
-
-        // Red score
-        scoreFont.setColor(0, 0, 0, 0.5f);
-        scoreFont.draw(batch, redScoreText, redScoreX + 2, redScoreY - 2);
-        scoreFont.setColor(1, 0.2f, 0.2f, 1);  // Red for red score
-        scoreFont.draw(batch, redScoreText, redScoreX, redScoreY);
 
         if (board.isGameOver() && !gameSaved) {
             GameRecord record = new GameRecord();
