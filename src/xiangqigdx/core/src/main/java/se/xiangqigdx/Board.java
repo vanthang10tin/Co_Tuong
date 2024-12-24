@@ -291,11 +291,14 @@ public class Board {
     }
 
     public void checkGameStatus() {
+        // Create a copy of pieces for safe iteration
+        ArrayList<Piece> piecesCopy = new ArrayList<>(pieces);
+        
         // First check if either general is captured
         boolean hasBlackGeneral = false;
         boolean hasRedGeneral = false;
 
-        for (Piece piece : pieces) {
+        for (Piece piece : piecesCopy) {
             if (piece.type == Type.GENERAL) {
                 if (piece.side == Side.BLACK) hasBlackGeneral = true;
                 if (piece.side == Side.RED) hasRedGeneral = true;
@@ -338,11 +341,13 @@ public class Board {
     }
 
     private boolean isGeneralsFacing() {
+        // Create a copy of pieces for safe iteration
+        ArrayList<Piece> piecesCopy = new ArrayList<>(pieces);
         Piece redGeneral = null;
         Piece blackGeneral = null;
 
         // Find both generals
-        for (Piece piece : pieces) {
+        for (Piece piece : piecesCopy) {
             if (piece.type == Type.GENERAL) {
                 if (piece.side == Side.RED) redGeneral = piece;
                 if (piece.side == Side.BLACK) blackGeneral = piece;
@@ -371,10 +376,16 @@ public class Board {
             return false;
         }
 
+        // Create a copy of pieces to avoid concurrent modification
+        ArrayList<Piece> piecesToCheck = new ArrayList<>(pieces);
+
         // Check if any piece has legal moves
-        for (Piece piece : pieces) {
-            if (piece.side == currentPlayer && !getValidMovesPositions(piece).isEmpty()) {
-                return false;
+        for (Piece piece : piecesToCheck) {
+            if (piece.side == currentPlayer) {
+                ArrayList<Position> validMoves = getValidMovesPositions(piece);
+                if (!validMoves.isEmpty()) {
+                    return false;
+                }
             }
         }
         return true;

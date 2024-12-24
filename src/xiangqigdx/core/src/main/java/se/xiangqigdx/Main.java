@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Main extends Game {
@@ -21,6 +20,7 @@ public class Main extends Game {
     public SkinMode currentSkinMode; // Add field
     public Texture chinesePieceTexture, englishPieceTexture;
     public Preferences skinPreferences;
+    public GameDatabase gameDatabase;
 
     public void create(){
         batch = new SpriteBatch();
@@ -36,6 +36,7 @@ public class Main extends Game {
         skinPreferences = Gdx.app.getPreferences("skinPreferences");
         String skinModeName = skinPreferences.getString("skinMode", "CHINESE");
         currentSkinMode = skinModeName.equals("CHINESE") ? SkinMode.CHINESE : SkinMode.ENGLISH; // Initialize skin mode
+        gameDatabase = new GameDatabase();
 
         this.setScreen(new MainMenuScreen(this));
     }
@@ -49,5 +50,8 @@ public class Main extends Game {
         font.dispose();
         texture.dispose();
         skinPreferences.flush();
+        if (gameDatabase != null) {
+            gameDatabase.dispose();
+        }
     }
 }

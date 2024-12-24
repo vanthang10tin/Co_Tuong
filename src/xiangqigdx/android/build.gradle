@@ -65,11 +65,6 @@ dependencies {
   implementation 'androidx.appcompat:appcompat:1.6.1'
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
-  def sqlite_version = "2.4.0"
-  implementation "androidx.sqlite:sqlite:$sqlite_version"
-  implementation "androidx.sqlite:sqlite-ktx:$sqlite_version"
-  implementation "androidx.sqlite:sqlite-framework:$sqlite_version"
-
   // Remove duplicate kotlin-stdlib dependencies
   configurations.all {
     resolutionStrategy {

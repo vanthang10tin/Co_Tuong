@@ -43,7 +43,6 @@ public class GameScreen implements Screen {
     private static final float SCREEN_WIDTH = 1100;  // Wider than board
     private static final float SCREEN_HEIGHT = 1200; // Taller than board
     private static final float BACK_BUTTON_SIZE = 100;
-    private static final float BACK_BUTTON_PADDING = 20;
     private float BACK_BUTTON_X;
     private float BACK_BUTTON_Y;
     private Texture backButtonTexture;  // Add this field
@@ -62,6 +61,7 @@ public class GameScreen implements Screen {
     private float aiDelay = 0.5f; // Half second delay before AI moves
     private float aiTimer = 0;
     private BitmapFont gameOverFont;
+    private boolean gameSaved = false;
 
 
     private Texture undoButtonTexture;
@@ -382,6 +382,11 @@ public class GameScreen implements Screen {
         batch.setColor(Color.WHITE);
         batch.end();
         input();
+
+        // After game over check
+        if (board.isGameOver()) {
+            saveGameIfOver();
+        }
     }
 
     private Texture getPieceTexture(Piece piece) {
@@ -522,6 +527,37 @@ public class GameScreen implements Screen {
                         validMovesPositions.clear();
                     }
                 }
+            }
+        }
+    }
+
+    private void saveGameIfOver() {
+        if (board.isGameOver() && !gameSaved) {
+            GameRecord record = new GameRecord();
+            // Use consistent date format
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            record.date = sdf.format(new java.util.Date());
+            record.gameMode = gameMode;
+            record.winner = board.getWinner();
+            record.isStalemate = board.isStalemate();
+            record.player1Side = board.player1Side;
+            
+            // Build moves string
+            StringBuilder moves = new StringBuilder();
+            for (Move move : board.moveStack) {
+                if (move != null) {
+                    moves.append(move.toString()).append(";");
+                }
+            }
+            record.moves = moves.toString();
+            
+            // Save and confirm it's saved
+            try {
+                game.gameDatabase.saveGame(record);
+                gameSaved = true;
+                Gdx.app.log("GameScreen", "Game saved successfully");
+            } catch (Exception e) {
+                Gdx.app.error("GameScreen", "Failed to save game", e);
             }
         }
     }
