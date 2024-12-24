@@ -2,11 +2,13 @@ package se.xiangqigdx;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Main extends Game {
@@ -18,6 +20,7 @@ public class Main extends Game {
     public Vector2 touchPos;
     public SkinMode currentSkinMode; // Add field
     public Texture chinesePieceTexture, englishPieceTexture;
+    public Preferences skinPreferences;
 
     public void create(){
         batch = new SpriteBatch();
@@ -30,7 +33,10 @@ public class Main extends Game {
         font.setUseIntegerPositions(false);
         font.getData().setScale(viewport.getWorldHeight()/ Gdx.graphics.getHeight());
         touchPos = new Vector2();
-        currentSkinMode = SkinMode.CHINESE; // Initialize skin mode
+        skinPreferences = Gdx.app.getPreferences("skinPreferences");
+        String skinModeName = skinPreferences.getString("skinMode", "CHINESE");
+        currentSkinMode = skinModeName.equals("CHINESE") ? SkinMode.CHINESE : SkinMode.ENGLISH; // Initialize skin mode
+
         this.setScreen(new MainMenuScreen(this));
     }
 
@@ -42,5 +48,6 @@ public class Main extends Game {
         batch.dispose();
         font.dispose();
         texture.dispose();
+        skinPreferences.flush();
     }
 }
