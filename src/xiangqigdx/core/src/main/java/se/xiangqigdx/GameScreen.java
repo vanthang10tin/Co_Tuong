@@ -64,6 +64,8 @@ public class GameScreen implements Screen {
     private BitmapFont gameOverFont;
 
 
+    private Texture undoButtonTexture;
+    private float UNDO_BUTTON_X, UNDO_BUTTON_Y;
     public GameScreen(){
         this.game = game;
 
@@ -85,7 +87,7 @@ public class GameScreen implements Screen {
         loadPieceTextures();
         hintTexture = new Texture("validMovesHint.png");
         backButtonTexture = new Texture("back_arrow.png");  // Add after other texture loading
-
+        undoButtonTexture = new Texture("undo.png");
         // Set the game mode
         gameMode = GameMode.PVE; // or GameMode.PVP
 
@@ -128,7 +130,7 @@ public class GameScreen implements Screen {
         loadPieceTextures();
         hintTexture = new Texture("validMovesHint.png");
         backButtonTexture = new Texture("back_arrow.png");  // Add after other texture loading
-
+        undoButtonTexture = new Texture("undo.png");
         // Set the game mode - you can modify this to be set by user input
         this.gameMode = gameMode;// or GameMode.PVP
 
@@ -214,9 +216,12 @@ public class GameScreen implements Screen {
         boardX = (screenWidth - boardWidth) / 2;
         boardY = (screenHeight - boardHeight) / 2;
 
-        // Update back button position - moved slightly inward from the edge
-        BACK_BUTTON_X = BACK_BUTTON_PADDING;
-        BACK_BUTTON_Y = screenHeight - BACK_BUTTON_SIZE - BACK_BUTTON_PADDING;
+        // Update back button position
+        BACK_BUTTON_X = BOARD_PADDING / 2;
+        BACK_BUTTON_Y = screenHeight - BACK_BUTTON_SIZE - BOARD_PADDING / 2;
+
+        UNDO_BUTTON_X = BACK_BUTTON_X + BACK_BUTTON_SIZE + 20;
+        UNDO_BUTTON_Y = BACK_BUTTON_Y;
     }
 
     @Override
@@ -371,8 +376,10 @@ public class GameScreen implements Screen {
         // Draw back button with larger size and more opacity
         batch.setColor(0.8f, 0.8f, 0.8f, 0.9f);  // Increased opacity to 0.9
         batch.draw(backButtonTexture, BACK_BUTTON_X, BACK_BUTTON_Y, BACK_BUTTON_SIZE, BACK_BUTTON_SIZE);
-        batch.setColor(Color.WHITE);
 
+        // Draw undo button
+        batch.draw(undoButtonTexture, UNDO_BUTTON_X, UNDO_BUTTON_Y, BACK_BUTTON_SIZE, BACK_BUTTON_SIZE);
+        batch.setColor(Color.WHITE);
         batch.end();
         input();
     }
@@ -449,6 +456,27 @@ public class GameScreen implements Screen {
                 game.setScreen(new MainMenuScreen(game));
                 dispose();
                 return;
+            }
+
+            if (touchPos.x >= UNDO_BUTTON_X && touchPos.x <= UNDO_BUTTON_X + BACK_BUTTON_SIZE &&
+                touchPos.y >= UNDO_BUTTON_Y && touchPos.y <= UNDO_BUTTON_Y + BACK_BUTTON_SIZE) {
+                if (gameMode == GameMode.PVE) {
+                    if (currentPlayer == board.player1Side) {
+                        board.undoMove();
+                        board.undoMove();
+                        if (!board.moveStack.isEmpty()){
+                            lastMoveFrom = board.moveStack.peek().from;
+                            lastMoveTo = board.moveStack.peek().to;
+                        }
+                        else {
+                            lastMoveFrom = null; lastMoveTo = null;
+                        }
+                    }
+                }
+                else board.undoMove();
+                selectedPiece = null;
+                validMovesPositions.clear();
+
             }
 
             // Allow moves if:
