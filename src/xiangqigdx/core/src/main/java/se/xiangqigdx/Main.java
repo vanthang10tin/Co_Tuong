@@ -23,8 +23,8 @@ public class Main extends Game {
         batch = new SpriteBatch();
         font = new BitmapFont();
         camera = new OrthographicCamera();
-        viewport = new FitViewport(8, 8, camera);
-        texture = new Texture("mainmenu.png");
+        viewport = new FitViewport(1080, 1920, camera);
+        texture = new Texture("beta_main_menu.png");
         chinesePieceTexture = new Texture("Pieces/Chinese-Pawn-Red.png");
         englishPieceTexture = new Texture("Pieces/English-Pawn-Red.png");
         font.setUseIntegerPositions(false);
