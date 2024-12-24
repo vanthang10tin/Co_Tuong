@@ -76,14 +76,17 @@ public class GameScreen implements Screen {
         updateBoardDimensions(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         // Load textures
-        backgroundTexture = new Texture("background_texture.png"); // Add your background texture
+        if (backgroundTexture != null) {
+            backgroundTexture.dispose();
+        }
+        backgroundTexture = new Texture("new_bg.png"); // Add your background texture
         boardTexture = new Texture("xiangqi_gmchess_wood.png");
         skinMode = SkinMode.CHINESE; // Default skin
         loadPieceTextures();
         hintTexture = new Texture("validMovesHint.png");
         backButtonTexture = new Texture("back_arrow.png");  // Add after other texture loading
 
-        // Set the game mode - you can modify this to be set by user input
+        // Set the game mode
         gameMode = GameMode.PVE; // or GameMode.PVP
 
         // Initialize game board with selected mode
@@ -116,7 +119,10 @@ public class GameScreen implements Screen {
         updateBoardDimensions(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         // Load textures
-        backgroundTexture = new Texture("background_texture.png"); // Add your background texture
+        if (backgroundTexture != null) {
+            backgroundTexture.dispose();
+        }
+        backgroundTexture = new Texture("new_bg.png"); // Add your background texture
         boardTexture = new Texture("xiangqi_gmchess_wood.png");
         skinMode = game.currentSkinMode; // Use skin mode from Main
         loadPieceTextures();
@@ -426,7 +432,10 @@ public class GameScreen implements Screen {
         font.dispose();
         backButtonTexture.dispose();  // Add this line
         shapeRenderer.dispose();
-        backgroundTexture.dispose();
+        if (backgroundTexture != null) {
+            backgroundTexture.dispose();
+            backgroundTexture = null;
+        }
     }
 
     public void input(){
