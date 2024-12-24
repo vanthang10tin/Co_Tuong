@@ -441,7 +441,10 @@ public class GameScreen implements Screen {
                         }
                     }
                 }
-                else board.undoMove();
+                else if (gameMode == GameMode.PVP) {
+                    board.undoMove();
+                    currentPlayer = board.getCurrentPlayer();
+                }
                 selectedPiece = null;
                 validMovesPositions.clear();
 
