@@ -102,6 +102,17 @@ public class Board {
         }
     }
 
+
+    public void setupPieces(int CustomGame){
+        if (CustomGame == 1){
+            pieces.clear();
+            pieces.add(new Piece(Side.BLACK, Type.GENERAL, 5, 0));
+            pieces.add(new Piece(Side.BLACK, Type.HORSE, 5, 1));
+            pieces.add(new Piece(Side.RED, Type.GENERAL, 5, 9));
+            pieces.add(new Piece(Side.RED, Type.HORSE, 0, 2));
+        }
+    }
+
     public Board(GameMode mode) {
         gameMode = mode;
         setupPieces();
@@ -294,7 +305,7 @@ public class Board {
     public void checkGameStatus() {
         // Create a copy of pieces for safe iteration
         ArrayList<Piece> piecesCopy = new ArrayList<>(pieces);
-        
+
         // First check if either general is captured
         boolean hasBlackGeneral = false;
         boolean hasRedGeneral = false;
@@ -400,7 +411,7 @@ public class Board {
         pieces.clear();
         this.player1Side = player1Side;
         this.player2Side = (player1Side == Side.RED) ? Side.BLACK : Side.RED;
-        
+
         // Setup pieces based on player1's side
         if (player1Side == Side.RED) {
             // Normal setup - player1 is RED at bottom

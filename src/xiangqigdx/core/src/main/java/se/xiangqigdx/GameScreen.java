@@ -22,7 +22,7 @@ public class GameScreen implements Screen {
     private Texture boardTexture;
     private Texture[] pieceTextures;
     private Texture hintTexture;
-    private Board board;
+    public Board board;
     ArrayList<Position> validMovesPositions;
     private OrthographicCamera camera;
     private Viewport viewport;
@@ -444,7 +444,7 @@ public class GameScreen implements Screen {
             record.isStalemate = board.isStalemate();
             record.player1Side = board.player1Side;
             record.moves = board.moveStack.toString();
-            
+
             Gdx.app.log("GameScreen", "Saving game...");
             game.gameDatabase.saveGame(record);
             gameSaved = true;
