@@ -103,13 +103,45 @@ public class Board {
     }
 
 
-    public void setupPieces(int CustomGame){
-        if (CustomGame == 1){
-            pieces.clear();
-            pieces.add(new Piece(Side.BLACK, Type.GENERAL, 5, 0));
-            pieces.add(new Piece(Side.BLACK, Type.HORSE, 5, 1));
-            pieces.add(new Piece(Side.RED, Type.GENERAL, 5, 9));
-            pieces.add(new Piece(Side.RED, Type.HORSE, 0, 2));
+    public void setupPieces(int CustomGame) {
+        switch (CustomGame) {
+            case 1:
+                pieces.clear();
+                pieces.add(new Piece(Side.BLACK, Type.GENERAL, 5, 0));
+                pieces.add(new Piece(Side.BLACK, Type.HORSE, 5, 1));
+                pieces.add(new Piece(Side.RED, Type.GENERAL, 5, 9));
+                pieces.add(new Piece(Side.RED, Type.HORSE, 0, 2));
+                break;
+            case 2:
+                pieces.clear();
+                pieces.add(new Piece(Side.BLACK, Type.GENERAL, 4, 0));
+                pieces.add(new Piece(Side.BLACK, Type.ADVISOR, 3, 0));
+                pieces.add(new Piece(Side.BLACK, Type.ADVISOR, 4, 1));
+                pieces.add(new Piece(Side.BLACK, Type.CANNON, 4, 2));
+                pieces.add(new Piece(Side.RED, Type.CANNON, 7, 3));
+                pieces.add(new Piece(Side.RED, Type.GENERAL, 5, 9));
+                break;
+            case 3:
+                pieces.clear();
+                pieces.add(new Piece(Side.BLACK, Type.ADVISOR, 3, 0));
+                pieces.add(new Piece(Side.BLACK, Type.GENERAL, 4, 0));
+                pieces.add(new Piece(Side.BLACK, Type.ADVISOR, 5, 0));
+                pieces.add(new Piece(Side.BLACK, Type.ELEPHANT, 6, 0));
+                pieces.add(new Piece(Side.BLACK, Type.CANNON, 4, 2));
+                pieces.add(new Piece(Side.BLACK, Type.HORSE, 8, 2));
+                pieces.add(new Piece(Side.BLACK, Type.CHARIOT, 1, 7));
+                pieces.add(new Piece(Side.BLACK, Type.SOLDIER, 5, 8));
+                pieces.add(new Piece(Side.BLACK, Type.CHARIOT, 6, 8));
+                pieces.add(new Piece(Side.RED, Type.GENERAL, 4, 9));
+                pieces.add(new Piece(Side.RED, Type.ELEPHANT, 6, 9));
+                pieces.add(new Piece(Side.RED, Type.ADVISOR, 4, 8));
+                pieces.add(new Piece(Side.RED, Type.ELEPHANT, 4, 7));
+                pieces.add(new Piece(Side.RED, Type.ADVISOR, 5, 7));
+                pieces.add(new Piece(Side.RED, Type.CHARIOT, 5, 6));
+                pieces.add(new Piece(Side.RED, Type.HORSE, 6, 2));
+                break;
+            default:
+
         }
     }
 

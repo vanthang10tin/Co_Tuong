@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 
+import java.util.Random;
+
 public class MainMenuScreen implements Screen {
 
     final Main game;
@@ -52,7 +54,10 @@ public class MainMenuScreen implements Screen {
                 }
                 else if (y < 1920-1729){
                     GameScreen gs = new GameScreen(game, GameMode.PVE);
-                    gs.board.setupPieces(1);
+                    Random rand = new Random();
+                    int map = Math.abs(rand.nextInt())%3;
+                    gs.board.setupPieces(1+map);
+                    Gdx.app.log("TheCo", "Setup Pieces "+(1+map));
                     game.setScreen(gs);
                 }
             }
